@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>U.S. National Accounts: Flow of Funds</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+</head>
+<body>
+
+  <header class="page-header">
+    <h1>U.S. National Accounts: Flow of Funds</h1>
+    <p class="subtitle">How money moves through the American economy &mdash; tracing the path from GDP through income, taxes, government spending, and household consumption.</p>
+    <p class="byline">Data: Bureau of Economic Analysis, CBO, U.S. Treasury &middot; <time>2024</time></p>
+  </header>
+
+  <main>
+    <section class="prose">
+      <p>
+        This diagram maps the flow of funds in the U.S. economy using the income-side
+        decomposition of GDP. Starting from the $29.7 trillion GDP at the left, money flows
+        into income categories (wages, profits, rents), through taxes to federal and state
+        governments, back to households as transfers, and finally into consumer spending.
+        Click any node to highlight its connections; hover for details.
+      </p>
+    </section>
+
+    <div class="sankey-container" id="sankey-container">
+      <div id="chart"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </main>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <footer>
+    <p>
+      Sources: Bureau of Economic Analysis (BEA) &mdash; GDP and National Income and Product Accounts;
+      Congressional Budget Office (CBO) &mdash; Monthly Budget Review FY2024;
+      U.S. Treasury &mdash; Fiscal Data;
+      Bureau of Labor Statistics (BLS) &mdash; Consumer Expenditure Survey 2024.
+      All figures in billions of current U.S. dollars. Some values are estimated from Q3/Q4 2024 annualized rates.
+      Minor categories are aggregated for visual clarity; totals may not sum exactly due to rounding and statistical discrepancies.
+    </p>
+  </footer>
+
+<script>
+// ============================================================
+// DATA (from researcher: data/national_accounts.json)
+// ============================================================
+const RAW_NODES = [
+  { id: 0,  name: "Gross Domestic Product",         rawCategory: "gdp" },
+  { id: 1,  name: "Compensation of Employees",      rawCategory: "income" },
+  { id: 2,  name: "Corporate Profits",              rawCategory: "income" },
+  { id: 3,  name: "Proprietors' Income",            rawCategory: "income" },
+  { id: 4,  name: "Rental Income",                  rawCategory: "income" },
+  { id: 5,  name: "Net Interest & Misc.",           rawCategory: "income" },
+  { id: 6,  name: "Taxes on Production",            rawCategory: "income" },
+  { id: 7,  name: "Depreciation (CCA)",             rawCategory: "income" },
+  { id: 8,  name: "Personal Income Tax",            rawCategory: "tax" },
+  { id: 9,  name: "Payroll Taxes",                  rawCategory: "tax" },
+  { id: 10, name: "Corporate Income Tax",           rawCategory: "tax" },
+  { id: 11, name: "Federal Government",             rawCategory: "government" },
+  { id: 12, name: "State & Local Government",       rawCategory: "government" },
+  { id: 13, name: "Social Security",                rawCategory: "federal_spending" },
+  { id: 14, name: "Medicare",                       rawCategory: "federal_spending" },
+  { id: 15, name: "Medicaid",                       rawCategory: "federal_spending" },
+  { id: 16, name: "National Defense",               rawCategory: "federal_spending" },
+  { id: 17, name: "Net Interest on Debt",           rawCategory: "federal_spending" },
+  { id: 18, name: "Other Mandatory & Transfers",    rawCategory: "federal_spending" },
+  { id: 36, name: "Nondefense Discretionary",       rawCategory: "federal_spending" },
+  { id: 19, name: "Disposable Personal Income",     rawCategory: "household" },
+  { id: 20, name: "Housing & Utilities",            rawCategory: "consumption" },
+  { id: 21, name: "Healthcare",                     rawCategory: "consumption" },
+  { id: 22, name: "Food & Beverages",               rawCategory: "consumption" },
+  { id: 23, name: "Transportation",                 rawCategory: "consumption" },
+  { id: 24, name: "Recreation & Entertainment",     rawCategory: "consumption" },
+  { id: 25, name: "Financial Services & Insurance", rawCategory: "consumption" },
+  { id: 26, name: "Other Goods & Services",         rawCategory: "consumption" },
+  { id: 27, name: "Personal Savings",               rawCategory: "savings" },
+  { id: 28, name: "Education",                      rawCategory: "state_local" },
+  { id: 29, name: "Public Welfare & Health",        rawCategory: "state_local" },
+  { id: 30, name: "Infrastructure & Other",         rawCategory: "state_local" },
+  { id: 31, name: "Federal Borrowing (Deficit)",    rawCategory: "deficit" },
+  { id: 32, name: "Retained Earnings",              rawCategory: "business" },
+  { id: 33, name: "Dividends to Households",        rawCategory: "income_flow" },
+  { id: 34, name: "Government Transfers",           rawCategory: "transfers" },
+  { id: 35, name: "Other Federal Revenue",          rawCategory: "tax" }
+];
+
+const RAW_LINKS = [
+  { source: 0,  target: 1,  value: 14900 },
+  { source: 0,  target: 2,  value: 3600 },
+  { source: 0,  target: 3,  value: 2050 },
+  { source: 0,  target: 4,  value: 1100 },
+  { source: 0,  target: 5,  value: 1250 },
+  { source: 0,  target: 6,  value: 1800 },
+  { source: 0,  target: 7,  value: 5000 },
+  { source: 1,  target: 8,  value: 2430 },
+  { source: 1,  target: 9,  value: 1710 },
+  { source: 1,  target: 19, value: 10760 },
+  { source: 2,  target: 10, value: 530 },
+  { source: 2,  target: 33, value: 1500 },
+  { source: 2,  target: 32, value: 1570 },
+  { source: 3,  target: 19, value: 1750 },
+  { source: 3,  target: 8,  value: 300 },
+  { source: 4,  target: 19, value: 1100 },
+  { source: 5,  target: 19, value: 1250 },
+  { source: 33, target: 19, value: 1500 },
+  { source: 8,  target: 11, value: 2730 },
+  { source: 9,  target: 11, value: 1710 },
+  { source: 10, target: 11, value: 530 },
+  { source: 35, target: 11, value: 230 },
+  { source: 31, target: 11, value: 1700 },
+  { source: 6,  target: 12, value: 1800 },
+  { source: 11, target: 13, value: 1461 },
+  { source: 11, target: 14, value: 870 },
+  { source: 11, target: 15, value: 620 },
+  { source: 11, target: 16, value: 874 },
+  { source: 11, target: 17, value: 882 },
+  { source: 11, target: 18, value: 700 },
+  { source: 11, target: 36, value: 1493 },
+  { source: 13, target: 34, value: 1461 },
+  { source: 14, target: 34, value: 870 },
+  { source: 15, target: 34, value: 620 },
+  { source: 18, target: 34, value: 700 },
+  { source: 34, target: 19, value: 3651 },
+  { source: 12, target: 28, value: 750 },
+  { source: 12, target: 29, value: 540 },
+  { source: 12, target: 30, value: 510 },
+  { source: 19, target: 20, value: 4250 },
+  { source: 19, target: 21, value: 2900 },
+  { source: 19, target: 22, value: 2350 },
+  { source: 19, target: 23, value: 1850 },
+  { source: 19, target: 24, value: 1200 },
+  { source: 19, target: 25, value: 1700 },
+  { source: 19, target: 26, value: 2761 },
+  { source: 19, target: 27, value: 3000 }
+];
+
+// ============================================================
+// MAP RESEARCHER CATEGORIES -> DESIGNER COLOR CATEGORIES
+// ============================================================
+const CATEGORY_MAP = {
+  gdp:                 "business",
+  income:              "household",
+  tax:                 "govt",
+  government:          "govt",
+  federal_spending:    "govt",
+  household:           "household",
+  consumption:         "household",
+  savings:             "financial",
+  state_local:         "govt",
+  deficit:             "financial",
+  business:            "business",
+  income_flow:         "financial",
+  transfers:           "govt"
+};
+
+const DATA = {
+  nodes: RAW_NODES.map(n => ({
+    id: n.id,
+    name: n.name,
+    category: CATEGORY_MAP[n.rawCategory] || "trade"
+  })),
+  links: RAW_LINKS.map(l => ({ ...l }))
+};
+
+// ============================================================
+// CATEGORY COLORS (matching CSS custom properties)
+// ============================================================
+const CATEGORY_COLORS = {
+  govt:      "#2171b5",
+  household: "#238b45",
+  business:  "#d94701",
+  financial: "#6a51a3",
+  trade:     "#636363"
+};
+
+const CATEGORY_LABELS = {
+  govt:      "Government & GDP",
+  household: "Households & Income",
+  business:  "Business & Investment",
+  financial: "Financial & Savings",
+  trade:     "Rest of World"
+};
+
+// ============================================================
+// FORMAT HELPERS
+// ============================================================
+function formatValue(v) {
+  if (v >= 1000) {
+    return "$" + d3.format(",.2f")(v / 1000) + "T";
+  }
+  return "$" + d3.format(",.0f")(v) + "B";
+}
+
+function formatValueBillions(v) {
+  return "$" + d3.format(",.0f")(v) + "B";
+}
+
+// ============================================================
+// CHART DIMENSIONS
+// ============================================================
+const chartEl = document.getElementById("chart");
+const margin = { top: 24, right: 220, bottom: 24, left: 200 };
+
+function getDimensions() {
+  const w = Math.min(1200, chartEl.clientWidth || 1000);
+  return {
+    width: w - margin.left - margin.right,
+    height: Math.max(700, Math.min(900, window.innerHeight * 0.7))
+  };
+}
+
+const dims = getDimensions();
+
+// ============================================================
+// SVG
+// ============================================================
+const svgEl = d3.select("#chart")
+  .append("svg")
+    .attr("role", "img")
+    .attr("aria-label", "Sankey diagram showing U.S. national accounts flow of funds, 2024")
+    .attr("viewBox", `0 0 ${dims.width + margin.left + margin.right} ${dims.height + margin.top + margin.bottom}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+const svg = svgEl.append("g")
+  .attr("transform", `translate(${margin.left},${margin.top})`);
+
+// ============================================================
+// TOOLTIP FUNCTIONS
+// ============================================================
+const tooltip = d3.select("#tooltip");
+
+function showTooltip(event) {
+  tooltip.classed("is-visible", true);
+  positionTooltip(event);
+}
+
+function positionTooltip(event) {
+  const pad = 16;
+  let x = event.pageX + pad;
+  let y = event.pageY - pad;
+  // Keep tooltip on screen
+  const ttWidth = 280;
+  if (x + ttWidth > window.innerWidth) {
+    x = event.pageX - ttWidth - pad;
+  }
+  if (y < 0) y = pad;
+  tooltip.style("left", x + "px").style("top", y + "px");
+}
+
+function hideTooltip() {
+  tooltip.classed("is-visible", false);
+}
+
+function setNodeTooltip(d) {
+  const color = CATEGORY_COLORS[d.category];
+  let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.name}</div>`;
+  html += `<div class="tooltip-value">${formatValue(d.value)}</div>`;
+
+  if (d.targetLinks.length > 0) {
+    html += `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
+    d.targetLinks
+      .sort((a, b) => b.value - a.value)
+      .forEach(l => {
+        html += `<div class="tooltip-flow-label"><span class="arrow">&larr;</span> ${l.source.name}: ${formatValueBillions(l.value)}</div>`;
+      });
+  }
+  if (d.sourceLinks.length > 0) {
+    html += `<div class="tooltip-detail" style="margin-top:4px"><strong>Outflows:</strong></div>`;
+    d.sourceLinks
+      .sort((a, b) => b.value - a.value)
+      .forEach(l => {
+        html += `<div class="tooltip-flow-label"><span class="arrow">&rarr;</span> ${l.target.name}: ${formatValueBillions(l.value)}</div>`;
+      });
+  }
+  tooltip.html(html);
+}
+
+function setLinkTooltip(d) {
+  const color = CATEGORY_COLORS[d.source.category];
+  const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.source.name} <span class="arrow">&rarr;</span> ${d.target.name}</div>` +
+    `<div class="tooltip-value">${formatValueBillions(d.value)}</div>`;
+  tooltip.html(html);
+}
+
+// ============================================================
+// SANKEY LAYOUT
+// ============================================================
+const sankey = d3.sankey()
+  .nodeId(d => d.id)
+  .nodeWidth(18)
+  .nodePadding(10)
+  .nodeAlign(d3.sankeyJustify)
+  .extent([[0, 0], [dims.width, dims.height]]);
+
+const graph = sankey({
+  nodes: DATA.nodes.map(d => ({ ...d })),
+  links: DATA.links.map(d => ({ ...d }))
+});
+
+// ============================================================
+// RENDER LINKS
+// ============================================================
+const linkGroup = svg.append("g").attr("class", "sankey-links");
+
+const links = linkGroup.selectAll(".sankey-link")
+  .data(graph.links)
+  .join("path")
+    .attr("class", d => `sankey-link link-${d.source.category}`)
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke-width", d => Math.max(1, d.width))
+    .on("mouseover", function(event, d) {
+      setLinkTooltip(d);
+      showTooltip(event);
+      if (!selectedNode) {
+        d3.select(this).classed("is-highlighted", true);
+      }
+    })
+    .on("mousemove", function(event) {
+      positionTooltip(event);
+    })
+    .on("mouseout", function() {
+      hideTooltip();
+      if (!selectedNode) {
+        d3.select(this).classed("is-highlighted", false);
+      }
+    });
+
+// ============================================================
+// RENDER NODES
+// ============================================================
+const nodeGroup = svg.append("g").attr("class", "sankey-nodes");
+
+const nodes = nodeGroup.selectAll(".sankey-node")
+  .data(graph.nodes)
+  .join("g")
+    .attr("class", d => `sankey-node node-${d.category}`)
+    .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+nodes.append("rect")
+  .attr("height", d => Math.max(1, d.y1 - d.y0))
+  .attr("width", sankey.nodeWidth())
+  .attr("rx", 2)
+  .attr("ry", 2);
+
+// Node name labels
+nodes.append("text")
+  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("y", d => (d.y1 - d.y0) / 2)
+  .attr("dy", "0.35em")
+  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .attr("class", "node-name")
+  .text(d => d.name);
+
+// Node value labels below names (only for nodes tall enough)
+nodes.filter(d => (d.y1 - d.y0) > 16)
+  .append("text")
+  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("y", d => (d.y1 - d.y0) / 2 + 13)
+  .attr("dy", "0.35em")
+  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .attr("class", "node-value")
+  .style("font-size", "9.5px")
+  .style("fill", d => CATEGORY_COLORS[d.category])
+  .style("font-weight", "600")
+  .style("opacity", 0.8)
+  .text(d => formatValue(d.value));
+
+// ============================================================
+// NODE HOVER
+// ============================================================
+nodes
+  .on("mouseover", function(event, d) {
+    setNodeTooltip(d);
+    showTooltip(event);
+    if (!selectedNode) {
+      temporaryHighlight(d);
+    }
+  })
+  .on("mousemove", function(event) {
+    positionTooltip(event);
+  })
+  .on("mouseout", function() {
+    hideTooltip();
+    if (!selectedNode) {
+      clearHighlight();
+    }
+  });
+
+// ============================================================
+// CLICK-TO-HIGHLIGHT
+// ============================================================
+let selectedNode = null;
+const container = d3.select("#sankey-container");
+
+nodes.on("click", function(event, d) {
+  event.stopPropagation();
+
+  if (selectedNode === d) {
+    selectedNode = null;
+    clearHighlight();
+    return;
+  }
+
+  selectedNode = d;
+  applyHighlight(d);
+});
+
+d3.select("body").on("click", function() {
+  if (selectedNode) {
+    selectedNode = null;
+    clearHighlight();
+    document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("is-active"));
+  }
+});
+
+function temporaryHighlight(d) {
+  container.classed("has-focus", true);
+  markConnected(d);
+}
+
+function applyHighlight(d) {
+  container.classed("has-focus", true);
+  markConnected(d);
+}
+
+function markConnected(d) {
+  const connectedNodeIds = new Set();
+  connectedNodeIds.add(d.index);
+  d.sourceLinks.forEach(l => connectedNodeIds.add(l.target.index));
+  d.targetLinks.forEach(l => connectedNodeIds.add(l.source.index));
+
+  links.classed("is-highlighted", l => l.source === d || l.target === d);
+  nodes.classed("is-highlighted", n => connectedNodeIds.has(n.index));
+}
+
+function clearHighlight() {
+  container.classed("has-focus", false);
+  links.classed("is-highlighted", false);
+  nodes.classed("is-highlighted", false);
+}
+
+// ============================================================
+// LEGEND
+// ============================================================
+function buildLegend() {
+  const legendEl = document.getElementById("legend");
+  const categories = ["govt", "household", "business", "financial", "trade"];
+
+  categories.forEach(cat => {
+    if (!DATA.nodes.some(n => n.category === cat)) return;
+
+    const item = document.createElement("div");
+    item.className = "legend-item";
+    item.dataset.category = cat;
+
+    const swatch = document.createElement("span");
+    swatch.className = `legend-swatch swatch-${cat}`;
+
+    item.appendChild(swatch);
+    item.appendChild(document.createTextNode(CATEGORY_LABELS[cat]));
+    legendEl.appendChild(item);
+
+    item.addEventListener("click", () => {
+      const alreadyActive = item.classList.contains("is-active");
+      document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("is-active"));
+      selectedNode = null;
+
+      if (alreadyActive) {
+        clearHighlight();
+        return;
+      }
+
+      item.classList.add("is-active");
+      container.classed("has-focus", true);
+
+      const catNodes = new Set();
+      graph.nodes.forEach(n => { if (n.category === cat) catNodes.add(n.index); });
+
+      links.classed("is-highlighted", l => catNodes.has(l.source.index) || catNodes.has(l.target.index));
+      nodes.classed("is-highlighted", n => {
+        if (catNodes.has(n.index)) return true;
+        return n.sourceLinks.some(l => catNodes.has(l.target.index)) ||
+               n.targetLinks.some(l => catNodes.has(l.source.index));
+      });
+    });
+  });
+}
+
+buildLegend();
+
+// ============================================================
+// ACCESSIBLE SUMMARY (hidden for screen readers)
+// ============================================================
+const summary = document.createElement("p");
+summary.className = "visually-hidden";
+summary.textContent = `Sankey diagram showing the flow of ${formatValue(graph.nodes[0].value)} in US GDP (2024) through ${graph.nodes.length} economic sectors including personal consumption, government spending, investment, and household expenses.`;
+document.querySelector(".sankey-container").prepend(summary);
+
+// ============================================================
+// RESPONSIVE
+// ============================================================
+window.addEventListener("resize", () => {
+  const d = getDimensions();
+  svgEl.attr("viewBox", `0 0 ${d.width + margin.left + margin.right} ${d.height + margin.top + margin.bottom}`);
+});
+</script>
+</body>
+</html>

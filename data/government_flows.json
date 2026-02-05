@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "title": "US Federal Government Revenue and Spending Flows, FY2023",
+    "units": "billions of USD",
+    "year": 2023,
+    "sources": [
+      "US Treasury - Joint Statement on Budget Results for FY2023 (jy1829): Total receipts $4,439.3B, total outlays $6,134.4B",
+      "Congressional Budget Office (CBO) - Monthly Budget Review: Summary for FY2023 (pub 59640)",
+      "CBO - The Federal Budget in Fiscal Year 2023: An Infographic (pub 59727)",
+      "CBO - Mandatory Spending in Fiscal Year 2023: An Infographic (pub 59728)",
+      "CBO - Discretionary Spending in Fiscal Year 2023: An Infographic (pub 59729)",
+      "Congressional Research Service (CRS) - Federal Grants to State and Local Governments (R40638): $1,083B total grants FY2023",
+      "Congressional Research Service (CRS) - Overview of the Federal Tax System in 2024 (R48313)",
+      "US Treasury - Fiscal Data (fiscaldata.treasury.gov)"
+    ],
+    "notes": "Revenue figures are exact from the Treasury Joint Statement (jy1829). Spending figures are from CBO Monthly Budget Reviews and cross-referenced with Treasury data. Budget function totals are rounded to nearest billion. The deficit ($1,695B) represents federal borrowing needed to cover the gap between revenue and outlays. State and local data is approximate, based on Census Bureau and Urban Institute estimates for the most recent available year."
+  },
+  "nodes": [
+    { "name": "Individual Income Taxes", "category": "revenue_source" },
+    { "name": "Payroll Taxes (Social Insurance)", "category": "revenue_source" },
+    { "name": "Corporate Income Taxes", "category": "revenue_source" },
+    { "name": "Excise Taxes", "category": "revenue_source" },
+    { "name": "Customs Duties", "category": "revenue_source" },
+    { "name": "Estate & Gift Taxes", "category": "revenue_source" },
+    { "name": "Miscellaneous Receipts", "category": "revenue_source" },
+    { "name": "Federal Borrowing (Deficit)", "category": "deficit" },
+
+    { "name": "Federal Government", "category": "government" },
+
+    { "name": "Social Security", "category": "federal_spending" },
+    { "name": "Medicare", "category": "federal_spending" },
+    { "name": "Medicaid (Federal Share)", "category": "federal_spending" },
+    { "name": "National Defense", "category": "federal_spending" },
+    { "name": "Net Interest on Debt", "category": "federal_spending" },
+    { "name": "Veterans Benefits & Services", "category": "federal_spending" },
+    { "name": "Income Security Programs", "category": "federal_spending" },
+    { "name": "Other Mandatory Spending", "category": "federal_spending" },
+    { "name": "Nondefense Discretionary", "category": "federal_spending" },
+
+    { "name": "State & Local Governments", "category": "state_local" },
+    { "name": "State/Local Own-Source Revenue", "category": "state_local_revenue" },
+    { "name": "K-12 & Higher Education", "category": "state_local_spending" },
+    { "name": "Public Welfare & Health", "category": "state_local_spending" },
+    { "name": "Highways & Transportation", "category": "state_local_spending" },
+    { "name": "Police, Fire & Corrections", "category": "state_local_spending" },
+    { "name": "Other State/Local Services", "category": "state_local_spending" }
+  ],
+  "links": [
+    {
+      "source": "Individual Income Taxes",
+      "target": "Federal Government",
+      "value": 2176.5,
+      "description": "Individual income tax receipts (49% of federal revenue)"
+    },
+    {
+      "source": "Payroll Taxes (Social Insurance)",
+      "target": "Federal Government",
+      "value": 1614.5,
+      "description": "Social insurance and retirement receipts including Social Security and Medicare payroll taxes (36% of revenue)"
+    },
+    {
+      "source": "Corporate Income Taxes",
+      "target": "Federal Government",
+      "value": 419.6,
+      "description": "Corporation income tax receipts (9% of revenue)"
+    },
+    {
+      "source": "Excise Taxes",
+      "target": "Federal Government",
+      "value": 75.8,
+      "description": "Excise taxes on fuel, tobacco, alcohol, etc."
+    },
+    {
+      "source": "Customs Duties",
+      "target": "Federal Government",
+      "value": 80.3,
+      "description": "Customs duties on imported goods"
+    },
+    {
+      "source": "Estate & Gift Taxes",
+      "target": "Federal Government",
+      "value": 33.7,
+      "description": "Estate and gift tax receipts"
+    },
+    {
+      "source": "Miscellaneous Receipts",
+      "target": "Federal Government",
+      "value": 39.0,
+      "description": "Miscellaneous receipts including Federal Reserve deposits and fees"
+    },
+    {
+      "source": "Federal Borrowing (Deficit)",
+      "target": "Federal Government",
+      "value": 1695.0,
+      "description": "Federal borrowing to cover the FY2023 deficit ($6,134.4B outlays minus $4,439.3B revenue)"
+    },
+
+    {
+      "source": "Federal Government",
+      "target": "Social Security",
+      "value": 1354,
+      "description": "Social Security benefit payments (OASI and DI) - 22% of outlays"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Medicare",
+      "value": 846,
+      "description": "Medicare spending (Parts A, B, D) - 14% of outlays"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Medicaid (Federal Share)",
+      "value": 616,
+      "description": "Federal share of Medicaid and CHIP ($615.8B in grants to states) - 10% of outlays"
+    },
+    {
+      "source": "Federal Government",
+      "target": "National Defense",
+      "value": 806,
+      "description": "Department of Defense and other national defense spending - 13% of outlays"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Net Interest on Debt",
+      "value": 659,
+      "description": "Net interest on the public debt (increased 33% from FY2022)"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Veterans Benefits & Services",
+      "value": 302,
+      "description": "Veterans benefits, healthcare, disability compensation, and services"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Income Security Programs",
+      "value": 710,
+      "description": "SNAP, SSI, EITC/child tax credits, housing assistance, unemployment compensation, and other income security"
+    },
+    {
+      "source": "Federal Government",
+      "target": "Other Mandatory Spending",
+      "value": 182,
+      "description": "Other mandatory programs: agriculture subsidies, federal employee retirement, other health programs, etc."
+    },
+    {
+      "source": "Federal Government",
+      "target": "Nondefense Discretionary",
+      "value": 659.4,
+      "description": "Nondefense discretionary: education, transportation, science, diplomacy, environment, housing, courts, agencies"
+    },
+
+    {
+      "source": "Medicaid (Federal Share)",
+      "target": "State & Local Governments",
+      "value": 616,
+      "description": "Medicaid grants to states (56.8% of all federal grants to state/local)"
+    },
+    {
+      "source": "Nondefense Discretionary",
+      "target": "State & Local Governments",
+      "value": 467,
+      "description": "Federal grants for highways ($47.7B), education, housing, community development, and other programs ($1,083B total grants minus $616B Medicaid)"
+    },
+    {
+      "source": "State/Local Own-Source Revenue",
+      "target": "State & Local Governments",
+      "value": 2800,
+      "description": "State and local own-source revenue: property taxes, sales taxes, income taxes, fees, charges (approx. based on Census data)"
+    },
+
+    {
+      "source": "State & Local Governments",
+      "target": "K-12 & Higher Education",
+      "value": 1150,
+      "description": "Elementary/secondary education and higher education (largest state/local expenditure)"
+    },
+    {
+      "source": "State & Local Governments",
+      "target": "Public Welfare & Health",
+      "value": 1050,
+      "description": "Public welfare (including state Medicaid match), hospitals, and health programs"
+    },
+    {
+      "source": "State & Local Governments",
+      "target": "Highways & Transportation",
+      "value": 280,
+      "description": "Highways, roads, public transit, and transportation infrastructure"
+    },
+    {
+      "source": "State & Local Governments",
+      "target": "Police, Fire & Corrections",
+      "value": 350,
+      "description": "Police protection, fire protection, corrections, and judicial/legal services"
+    },
+    {
+      "source": "State & Local Governments",
+      "target": "Other State/Local Services",
+      "value": 1053,
+      "description": "Parks, utilities, housing, administration, environment, interest on debt, and other services"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "metadata": {
+    "title": "US Household Income and Consumer Spending Flows, 2023",
+    "units": "billions of USD",
+    "year": 2023,
+    "sources": [
+      "Bureau of Economic Analysis (BEA) - NIPA Table 2.1 Personal Income and Its Disposition",
+      "Bureau of Economic Analysis (BEA) - NIPA Table 2.4.5U Personal Consumption Expenditures by Type",
+      "Federal Reserve Economic Data (FRED) - Federal Reserve Bank of St. Louis",
+      "Bureau of Labor Statistics (BLS) - Consumer Expenditure Survey 2023"
+    ],
+    "notes": "All values are calendar year 2023 annual data in billions of current USD. Personal income is net of contributions for government social insurance per BEA methodology. Income flows into Personal Income, which is then split into Personal Current Taxes and Disposable Personal Income. DPI flows to consumption categories, personal saving, and other personal outlays. PCE categories combine goods and services into functional groupings. 'Other Goods & Services' is a residual capturing furnishings, communications, personal care, household supplies, and miscellaneous services."
+  },
+  "nodes": [
+    { "name": "Wages & Salaries", "category": "income_source" },
+    { "name": "Employer Supplements (net)", "category": "income_source" },
+    { "name": "Proprietors' Income", "category": "income_source" },
+    { "name": "Rental Income", "category": "income_source" },
+    { "name": "Dividend Income", "category": "income_source" },
+    { "name": "Personal Interest Income", "category": "income_source" },
+    { "name": "Social Security Benefits", "category": "transfer" },
+    { "name": "Medicare Benefits", "category": "transfer" },
+    { "name": "Medicaid Benefits", "category": "transfer" },
+    { "name": "Veterans' Benefits", "category": "transfer" },
+    { "name": "Unemployment Insurance", "category": "transfer" },
+    { "name": "Other Government Transfers", "category": "transfer" },
+    { "name": "Personal Income", "category": "household" },
+    { "name": "Personal Current Taxes", "category": "tax" },
+    { "name": "Disposable Personal Income", "category": "household" },
+    { "name": "Housing & Utilities", "category": "consumption" },
+    { "name": "Healthcare", "category": "consumption" },
+    { "name": "Food & Beverages", "category": "consumption" },
+    { "name": "Transportation", "category": "consumption" },
+    { "name": "Financial Services & Insurance", "category": "consumption" },
+    { "name": "Recreation & Entertainment", "category": "consumption" },
+    { "name": "Clothing & Footwear", "category": "consumption" },
+    { "name": "Education", "category": "consumption" },
+    { "name": "Other Goods & Services", "category": "consumption" },
+    { "name": "Personal Saving", "category": "saving" },
+    { "name": "Other Personal Outlays", "category": "outlays" }
+  ],
+  "links": [
+    {
+      "source": "Wages & Salaries",
+      "target": "Personal Income",
+      "value": 11081.3,
+      "description": "Wage and salary disbursements (FRED BA06RC1A027NBEA)"
+    },
+    {
+      "source": "Employer Supplements (net)",
+      "target": "Personal Income",
+      "value": 674.3,
+      "description": "Supplements to wages ($2,475.0B) minus contributions for government social insurance ($1,800.6B). Supplements include employer contributions for pensions and insurance; social insurance contributions are payroll taxes (Social Security, Medicare, unemployment insurance). Net flow represents employer-provided benefits beyond payroll taxes."
+    },
+    {
+      "source": "Proprietors' Income",
+      "target": "Personal Income",
+      "value": 1942.0,
+      "description": "Proprietors' income with IVA and CCAdj, nonfarm + farm (FRED A041RC1A027NBEA)"
+    },
+    {
+      "source": "Rental Income",
+      "target": "Personal Income",
+      "value": 1002.5,
+      "description": "Rental income of persons with capital consumption adjustment (FRED A048RC1A027NBEA)"
+    },
+    {
+      "source": "Dividend Income",
+      "target": "Personal Income",
+      "value": 2147.4,
+      "description": "Personal dividend income (FRED B703RC1A027NBEA)"
+    },
+    {
+      "source": "Personal Interest Income",
+      "target": "Personal Income",
+      "value": 1829.7,
+      "description": "Personal interest income (FRED A064RC1A027NBEA)"
+    },
+    {
+      "source": "Social Security Benefits",
+      "target": "Personal Income",
+      "value": 1357.0,
+      "description": "Old-age, survivors, and disability insurance benefits (FRED W823RC1A027NBEA)"
+    },
+    {
+      "source": "Medicare Benefits",
+      "target": "Personal Income",
+      "value": 1024.8,
+      "description": "Medicare hospital and supplementary medical insurance benefits (FRED W824RC1A027NBEA)"
+    },
+    {
+      "source": "Medicaid Benefits",
+      "target": "Personal Income",
+      "value": 878.2,
+      "description": "Medicaid benefits (FRED W729RC1A027NBEA)"
+    },
+    {
+      "source": "Veterans' Benefits",
+      "target": "Personal Income",
+      "value": 196.6,
+      "description": "Veterans' benefits (FRED W826RC1A027NBEA)"
+    },
+    {
+      "source": "Unemployment Insurance",
+      "target": "Personal Income",
+      "value": 33.3,
+      "description": "Unemployment insurance benefits (FRED W825RC1A027NBEA)"
+    },
+    {
+      "source": "Other Government Transfers",
+      "target": "Personal Income",
+      "value": 1417.9,
+      "description": "Other government social benefits plus other current transfer receipts from business and persons. Includes SNAP, SSI, education assistance, workers comp, other programs. Residual to balance personal income to BEA total of $23,585.0B."
+    },
+    {
+      "source": "Personal Income",
+      "target": "Personal Current Taxes",
+      "value": 2835.7,
+      "description": "Personal current taxes: federal and state/local income taxes, estate and gift taxes, personal property taxes (FRED W055RC1A027NBEA)"
+    },
+    {
+      "source": "Personal Income",
+      "target": "Disposable Personal Income",
+      "value": 20749.3,
+      "description": "Disposable personal income = Personal income minus personal current taxes ($23,585.0B - $2,835.7B)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Housing & Utilities",
+      "value": 3375.5,
+      "description": "PCE housing and utilities: rent, owners' imputed rent, utilities, household operations (FRED USPCEHOUSUTL)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Healthcare",
+      "value": 3060.4,
+      "description": "PCE healthcare services: hospitals, physicians, nursing homes, health insurance (FRED DHLCRC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Food & Beverages",
+      "value": 2800.8,
+      "description": "Food for off-premises consumption ($1,438.3B, FRED DFXARC1A027NBEA) plus food services and accommodations ($1,362.5B, FRED DFSARC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Transportation",
+      "value": 1832.2,
+      "description": "Motor vehicles and parts ($750.4B) + gasoline and energy goods ($464.9B) + transportation services ($616.9B)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Financial Services & Insurance",
+      "value": 1425.8,
+      "description": "PCE financial services and insurance: banking, brokerage, insurance premiums (FRED DIFSRC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Recreation & Entertainment",
+      "value": 1372.3,
+      "description": "Recreation services ($739.3B, FRED DRCARC1A027NBEA) + recreational goods and vehicles ($633.0B, FRED DREQRC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Clothing & Footwear",
+      "value": 535.4,
+      "description": "PCE clothing, footwear, and related services (FRED DCAFRC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Education",
+      "value": 338.6,
+      "description": "PCE education services: higher education, vocational schools, other (FRED DTEDRC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Other Goods & Services",
+      "value": 4092.2,
+      "description": "Residual PCE categories: furnishings and household equipment, communications and information processing, personal care, tobacco, other nondurable goods, other services, and miscellaneous"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Personal Saving",
+      "value": 1159.2,
+      "description": "Personal saving: income not consumed or paid as taxes (FRED A071RC1A027NBEA)"
+    },
+    {
+      "source": "Disposable Personal Income",
+      "target": "Other Personal Outlays",
+      "value": 756.9,
+      "description": "Personal interest payments and personal current transfer payments to rest of world (personal outlays $19,590.0B minus PCE $18,833.2B)"
+    }
+  ]
+}
