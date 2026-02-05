@@ -1,0 +1,157 @@
+{
+  "name": "Nonresidential",
+  "value": 3050,
+  "source": "BEA Fixed Assets Accounts and NIPA, 2024. FRED series: M1NTOTL1ES000 ($3,194B total nonresidential CFC), Y080RC1A027NBEA ($1,270B equipment CFC), Y083RC1A027NBEA ($1,325B IP CFC). Structures derived as residual ($600B). All proportionally scaled to $3,050B for Sankey consistency. Sub-type shares from BEA Table 2.4 (Current-Cost Depreciation of Private Nonresidential Fixed Assets by Type) and NIPA Tables 5.4.5, 5.5.5, 5.6.5.",
+  "children": [
+    {
+      "name": "Structures",
+      "value": 573,
+      "children": [
+        {
+          "name": "Commercial & Health Care",
+          "value": 170,
+          "children": [
+            { "name": "Offices", "value": 50 },
+            { "name": "Hospitals & Medical", "value": 38 },
+            { "name": "Retail & Wholesale", "value": 32 },
+            { "name": "Warehouses", "value": 28 },
+            { "name": "Hotels & Lodging", "value": 22 }
+          ]
+        },
+        {
+          "name": "Power & Communication",
+          "value": 140,
+          "children": [
+            { "name": "Electric Power", "value": 55 },
+            { "name": "Telecommunication", "value": 40 },
+            { "name": "Wind & Solar", "value": 25 },
+            { "name": "Gas Pipelines & Storage", "value": 20 }
+          ]
+        },
+        {
+          "name": "Mining & Petroleum",
+          "value": 108,
+          "children": [
+            { "name": "Petroleum Wells & Exploration", "value": 60 },
+            { "name": "Mining Shafts & Wells", "value": 28 },
+            { "name": "Gas Wells & Exploration", "value": 20 }
+          ]
+        },
+        {
+          "name": "Manufacturing",
+          "value": 72,
+          "children": [
+            { "name": "Chemical & Pharmaceutical Plants", "value": 22 },
+            { "name": "Semiconductor Fabrication", "value": 15 },
+            { "name": "Food & Beverage Plants", "value": 13 },
+            { "name": "Automotive & Machinery Plants", "value": 12 },
+            { "name": "Other Manufacturing", "value": 10 }
+          ]
+        },
+        {
+          "name": "Other Structures",
+          "value": 83,
+          "children": [
+            { "name": "Educational & Religious", "value": 25 },
+            { "name": "Amusement & Recreation", "value": 22 },
+            { "name": "Transportation Facilities", "value": 20 },
+            { "name": "Farm Structures", "value": 16 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Equipment",
+      "value": 1213,
+      "children": [
+        {
+          "name": "Information Processing",
+          "value": 500,
+          "children": [
+            { "name": "Computers & Peripherals", "value": 135 },
+            { "name": "Communication Equipment", "value": 115 },
+            { "name": "Software Embedded in Equipment", "value": 90 },
+            { "name": "Medical Instruments", "value": 60 },
+            { "name": "Electromedical Equipment", "value": 50 },
+            { "name": "Photocopiers & Office Equipment", "value": 50 }
+          ]
+        },
+        {
+          "name": "Industrial Equipment",
+          "value": 262,
+          "children": [
+            { "name": "Metalworking Machinery", "value": 50 },
+            { "name": "Special Industry Machinery", "value": 45 },
+            { "name": "General Industrial Equipment", "value": 44 },
+            { "name": "Construction Machinery", "value": 40 },
+            { "name": "Mining & Oilfield Machinery", "value": 38 },
+            { "name": "Service Industry Machinery", "value": 28 },
+            { "name": "Electrical Transmission & Distribution", "value": 17 }
+          ]
+        },
+        {
+          "name": "Transportation Equipment",
+          "value": 285,
+          "children": [
+            { "name": "Trucks & Light Vehicles", "value": 105 },
+            { "name": "Aircraft", "value": 65 },
+            { "name": "Heavy Trucks & Buses", "value": 45 },
+            { "name": "Railroad Equipment", "value": 28 },
+            { "name": "Ships & Boats", "value": 22 },
+            { "name": "Autos", "value": 20 }
+          ]
+        },
+        {
+          "name": "Other Equipment",
+          "value": 166,
+          "children": [
+            { "name": "Furniture & Fixtures", "value": 43 },
+            { "name": "Agricultural Machinery", "value": 38 },
+            { "name": "Electrical Equipment NEC", "value": 33 },
+            { "name": "Engines & Turbines", "value": 27 },
+            { "name": "Household Equipment (Rental)", "value": 25 }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Intellectual Property",
+      "value": 1264,
+      "children": [
+        {
+          "name": "Software",
+          "value": 560,
+          "children": [
+            { "name": "Custom Software", "value": 225 },
+            { "name": "Prepackaged Software", "value": 200 },
+            { "name": "Own-Account Software", "value": 135 }
+          ]
+        },
+        {
+          "name": "Research & Development",
+          "value": 622,
+          "children": [
+            { "name": "Pharmaceutical & Medicine", "value": 140 },
+            { "name": "Semiconductor & Electronics", "value": 85 },
+            { "name": "Software R&D (Tech Industry)", "value": 80 },
+            { "name": "Aerospace & Defense", "value": 62 },
+            { "name": "Chemical Manufacturing", "value": 48 },
+            { "name": "Automotive & Transport", "value": 42 },
+            { "name": "Other Manufacturing R&D", "value": 60 },
+            { "name": "Nonmanufacturing R&D", "value": 105 }
+          ]
+        },
+        {
+          "name": "Entertainment Originals",
+          "value": 82,
+          "children": [
+            { "name": "Television Programs", "value": 28 },
+            { "name": "Theatrical Movies", "value": 24 },
+            { "name": "Books & Music", "value": 16 },
+            { "name": "Other Originals", "value": 14 }
+          ]
+        }
+      ]
+    }
+  ]
+}

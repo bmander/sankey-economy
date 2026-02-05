@@ -1,0 +1,396 @@
+{
+  "name": "Depreciation (CCA)",
+  "value": 5000,
+  "source": "BEA Fixed Assets Accounts, 2024 estimates. FRED series M1TTOTL1ES000 ($4,810B actual) scaled to $5,000B for consistency with Sankey model. Detailed breakdowns from BEA Tables 2.4, 3.4ESI, and NIPA investment composition.",
+  "children": [
+    {
+      "name": "Private",
+      "value": 4300,
+      "children": [
+        {
+          "name": "Nonresidential",
+          "value": 3050,
+          "children": [
+            {
+              "name": "Structures",
+              "value": 650,
+              "children": [
+                {
+                  "name": "Commercial & Health Care",
+                  "value": 185,
+                  "children": [
+                    { "name": "Offices", "value": 55 },
+                    { "name": "Hospitals & Medical", "value": 40 },
+                    { "name": "Retail & Wholesale", "value": 35 },
+                    { "name": "Warehouses", "value": 30 },
+                    { "name": "Hotels & Lodging", "value": 25 }
+                  ]
+                },
+                {
+                  "name": "Power & Communication",
+                  "value": 155,
+                  "children": [
+                    { "name": "Electric Power", "value": 65 },
+                    { "name": "Telecommunication", "value": 45 },
+                    { "name": "Wind & Solar", "value": 25 },
+                    { "name": "Gas Pipelines & Storage", "value": 20 }
+                  ]
+                },
+                {
+                  "name": "Mining & Petroleum",
+                  "value": 130,
+                  "children": [
+                    { "name": "Petroleum Wells & Exploration", "value": 75 },
+                    { "name": "Mining Shafts & Wells", "value": 30 },
+                    { "name": "Gas Wells & Exploration", "value": 25 }
+                  ]
+                },
+                {
+                  "name": "Manufacturing",
+                  "value": 80,
+                  "children": [
+                    { "name": "Chemical & Pharmaceutical Plants", "value": 25 },
+                    { "name": "Food & Beverage Plants", "value": 15 },
+                    { "name": "Semiconductor Fabrication", "value": 15 },
+                    { "name": "Automotive & Machinery Plants", "value": 15 },
+                    { "name": "Other Manufacturing", "value": 10 }
+                  ]
+                },
+                {
+                  "name": "Other Structures",
+                  "value": 100,
+                  "children": [
+                    { "name": "Educational & Religious", "value": 30 },
+                    { "name": "Amusement & Recreation", "value": 25 },
+                    { "name": "Transportation Facilities", "value": 25 },
+                    { "name": "Farm Structures", "value": 20 }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Equipment",
+              "value": 1100,
+              "children": [
+                {
+                  "name": "Information Processing",
+                  "value": 450,
+                  "children": [
+                    { "name": "Computers & Peripherals", "value": 120 },
+                    { "name": "Communication Equipment", "value": 105 },
+                    { "name": "Software Embedded in Equipment", "value": 80 },
+                    { "name": "Medical Instruments", "value": 55 },
+                    { "name": "Electromedical Equipment", "value": 45 },
+                    { "name": "Photocopiers & Office Equipment", "value": 45 }
+                  ]
+                },
+                {
+                  "name": "Industrial Equipment",
+                  "value": 235,
+                  "children": [
+                    { "name": "Metalworking Machinery", "value": 45 },
+                    { "name": "Special Industry Machinery", "value": 40 },
+                    { "name": "General Industrial Equipment", "value": 40 },
+                    { "name": "Construction Machinery", "value": 35 },
+                    { "name": "Mining & Oilfield Machinery", "value": 35 },
+                    { "name": "Service Industry Machinery", "value": 25 },
+                    { "name": "Electrical Transmission & Distribution", "value": 15 }
+                  ]
+                },
+                {
+                  "name": "Transportation Equipment",
+                  "value": 260,
+                  "children": [
+                    { "name": "Trucks & Light Vehicles", "value": 95 },
+                    { "name": "Aircraft", "value": 60 },
+                    { "name": "Heavy Trucks & Buses", "value": 40 },
+                    { "name": "Railroad Equipment", "value": 25 },
+                    { "name": "Ships & Boats", "value": 20 },
+                    { "name": "Autos", "value": 20 }
+                  ]
+                },
+                {
+                  "name": "Other Equipment",
+                  "value": 155,
+                  "children": [
+                    { "name": "Furniture & Fixtures", "value": 40 },
+                    { "name": "Agricultural Machinery", "value": 35 },
+                    { "name": "Electrical Equipment NEC", "value": 30 },
+                    { "name": "Engines & Turbines", "value": 25 },
+                    { "name": "Household Equipment (Rental)", "value": 25 }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Intellectual Property",
+              "value": 1300,
+              "children": [
+                {
+                  "name": "Software",
+                  "value": 585,
+                  "children": [
+                    { "name": "Custom Software", "value": 235 },
+                    { "name": "Prepackaged Software", "value": 210 },
+                    { "name": "Own-Account Software", "value": 140 }
+                  ]
+                },
+                {
+                  "name": "Research & Development",
+                  "value": 630,
+                  "children": [
+                    { "name": "Pharmaceutical & Medicine", "value": 145 },
+                    { "name": "Semiconductor & Electronics", "value": 85 },
+                    { "name": "Software R&D (Tech Industry)", "value": 80 },
+                    { "name": "Aerospace & Defense", "value": 65 },
+                    { "name": "Chemical Manufacturing", "value": 50 },
+                    { "name": "Automotive & Transport", "value": 45 },
+                    { "name": "Other Manufacturing R&D", "value": 60 },
+                    { "name": "Nonmanufacturing R&D", "value": 100 }
+                  ]
+                },
+                {
+                  "name": "Entertainment Originals",
+                  "value": 85,
+                  "children": [
+                    { "name": "Theatrical Movies", "value": 25 },
+                    { "name": "Television Programs", "value": 30 },
+                    { "name": "Books & Music", "value": 15 },
+                    { "name": "Other Originals", "value": 15 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Residential",
+          "value": 750,
+          "children": [
+            {
+              "name": "Structures",
+              "value": 730,
+              "children": [
+                {
+                  "name": "Single-Family Permanent",
+                  "value": 420,
+                  "children": [
+                    { "name": "Owner-Occupied (1-unit)", "value": 310 },
+                    { "name": "Tenant-Occupied (1-unit)", "value": 110 }
+                  ]
+                },
+                {
+                  "name": "Multi-Family",
+                  "value": 210,
+                  "children": [
+                    { "name": "2-4 Unit Buildings", "value": 60 },
+                    { "name": "5+ Unit Buildings", "value": 150 }
+                  ]
+                },
+                {
+                  "name": "Other Residential",
+                  "value": 100,
+                  "children": [
+                    { "name": "Manufactured Homes", "value": 40 },
+                    { "name": "Improvements & Brokers' Commissions", "value": 45 },
+                    { "name": "Other (Dormitories, etc.)", "value": 15 }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Equipment & Other",
+              "value": 20,
+              "children": [
+                { "name": "Residential Equipment", "value": 12 },
+                { "name": "Residential IP Products", "value": 8 }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Nonprofit Institutions",
+          "value": 500,
+          "children": [
+            {
+              "name": "Structures",
+              "value": 180,
+              "children": [
+                { "name": "Educational Buildings", "value": 65 },
+                { "name": "Hospitals & Health Care", "value": 55 },
+                { "name": "Religious Buildings", "value": 30 },
+                { "name": "Other Nonprofit Structures", "value": 30 }
+              ]
+            },
+            {
+              "name": "Equipment",
+              "value": 120,
+              "children": [
+                { "name": "Medical & Scientific Equipment", "value": 45 },
+                { "name": "Information Processing", "value": 35 },
+                { "name": "Transportation Equipment", "value": 20 },
+                { "name": "Other Equipment", "value": 20 }
+              ]
+            },
+            {
+              "name": "Intellectual Property",
+              "value": 200,
+              "children": [
+                { "name": "Software", "value": 75 },
+                { "name": "Research & Development", "value": 110 },
+                { "name": "Entertainment & Artistic Originals", "value": 15 }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Government",
+      "value": 700,
+      "children": [
+        {
+          "name": "Federal",
+          "value": 300,
+          "children": [
+            {
+              "name": "Defense",
+              "value": 195,
+              "children": [
+                {
+                  "name": "Defense Structures",
+                  "value": 30,
+                  "children": [
+                    { "name": "Military Bases & Installations", "value": 18 },
+                    { "name": "Shipyards & Airfields", "value": 12 }
+                  ]
+                },
+                {
+                  "name": "Defense Equipment",
+                  "value": 120,
+                  "children": [
+                    { "name": "Aircraft & Missiles", "value": 45 },
+                    { "name": "Ships & Submarines", "value": 25 },
+                    { "name": "Vehicles & Tanks", "value": 20 },
+                    { "name": "Electronics & Communication", "value": 15 },
+                    { "name": "Weapons & Ordnance", "value": 15 }
+                  ]
+                },
+                {
+                  "name": "Defense IP",
+                  "value": 45,
+                  "children": [
+                    { "name": "Weapons R&D", "value": 25 },
+                    { "name": "Defense Software", "value": 15 },
+                    { "name": "Other Defense IP", "value": 5 }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Nondefense",
+              "value": 105,
+              "children": [
+                {
+                  "name": "Nondefense Structures",
+                  "value": 30,
+                  "children": [
+                    { "name": "Federal Office Buildings", "value": 12 },
+                    { "name": "Conservation & Development", "value": 10 },
+                    { "name": "Other Federal Structures", "value": 8 }
+                  ]
+                },
+                {
+                  "name": "Nondefense Equipment",
+                  "value": 25,
+                  "children": [
+                    { "name": "Vehicles & Transportation", "value": 8 },
+                    { "name": "Information Processing", "value": 7 },
+                    { "name": "Scientific Instruments", "value": 5 },
+                    { "name": "Other Equipment", "value": 5 }
+                  ]
+                },
+                {
+                  "name": "Nondefense IP",
+                  "value": 50,
+                  "children": [
+                    { "name": "Federal R&D (NASA, NIH, DOE)", "value": 35 },
+                    { "name": "Government Software", "value": 12 },
+                    { "name": "Other Nondefense IP", "value": 3 }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "State & Local",
+          "value": 400,
+          "children": [
+            {
+              "name": "Structures",
+              "value": 240,
+              "children": [
+                {
+                  "name": "Highways & Streets",
+                  "value": 95,
+                  "children": [
+                    { "name": "Interstate Highways", "value": 30 },
+                    { "name": "Other Highways & Roads", "value": 40 },
+                    { "name": "Bridges & Tunnels", "value": 25 }
+                  ]
+                },
+                {
+                  "name": "Educational Buildings",
+                  "value": 55,
+                  "children": [
+                    { "name": "Primary & Secondary Schools", "value": 35 },
+                    { "name": "Higher Education", "value": 20 }
+                  ]
+                },
+                {
+                  "name": "Water & Sewer Systems",
+                  "value": 45,
+                  "children": [
+                    { "name": "Water Supply", "value": 25 },
+                    { "name": "Sewage & Waste Disposal", "value": 20 }
+                  ]
+                },
+                {
+                  "name": "Other S&L Structures",
+                  "value": 45,
+                  "children": [
+                    { "name": "Public Safety Buildings", "value": 15 },
+                    { "name": "Hospitals & Health", "value": 12 },
+                    { "name": "Transit & Transportation", "value": 10 },
+                    { "name": "Parks & Recreation", "value": 8 }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "Equipment",
+              "value": 95,
+              "children": [
+                { "name": "Transit Vehicles & Buses", "value": 25 },
+                { "name": "Information Processing", "value": 20 },
+                { "name": "Construction & Maintenance Equipment", "value": 15 },
+                { "name": "Public Safety Vehicles", "value": 15 },
+                { "name": "Other S&L Equipment", "value": 20 }
+              ]
+            },
+            {
+              "name": "Intellectual Property",
+              "value": 65,
+              "children": [
+                { "name": "Software", "value": 40 },
+                { "name": "R&D (Universities & Labs)", "value": 20 },
+                { "name": "Other IP", "value": 5 }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

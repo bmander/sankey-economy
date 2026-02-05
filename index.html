@@ -253,6 +253,11 @@ function positionTooltip(event) {
     x = event.pageX - ttWidth - pad;
   }
   if (y < 0) y = pad;
+  // Bottom-edge check
+  const ttHeight = tooltip.node().getBoundingClientRect().height;
+  if (y + ttHeight > window.innerHeight) {
+    y = event.pageY - ttHeight - pad;
+  }
   tooltip.style("left", x + "px").style("top", y + "px");
 }
 
@@ -399,10 +404,23 @@ nodes
 // CLICK-TO-HIGHLIGHT
 // ============================================================
 let selectedNode = null;
+let treeViewActive = false;
+let treeTransitioning = false;
 const container = d3.select("#sankey-container");
 
 nodes.on("click", function(event, d) {
   event.stopPropagation();
+
+  // Block all clicks during transitions
+  if (treeTransitioning) return;
+
+  // If depreciation node is clicked, enter tree drill-down
+  if (d.id === 7 && !treeViewActive) {
+    enterTreeView();
+    return;
+  }
+
+  if (treeViewActive) return;
 
   if (selectedNode === d) {
     selectedNode = null;
@@ -415,6 +433,10 @@ nodes.on("click", function(event, d) {
 });
 
 d3.select("body").on("click", function() {
+  if (treeViewActive && !treeTransitioning) {
+    exitTreeView();
+    return;
+  }
   if (selectedNode) {
     selectedNode = null;
     clearHighlight();
@@ -470,6 +492,7 @@ function buildLegend() {
     legendEl.appendChild(item);
 
     item.addEventListener("click", () => {
+      if (treeViewActive) return;
       const alreadyActive = item.classList.contains("is-active");
       document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("is-active"));
       selectedNode = null;
@@ -512,6 +535,390 @@ window.addEventListener("resize", () => {
   const d = getDimensions();
   svgEl.attr("viewBox", `0 0 ${d.width + margin.left + margin.right} ${d.height + margin.top + margin.bottom}`);
 });
+
+// ============================================================
+// DEPRECIATION TREE DRILL-DOWN
+// ============================================================
+
+// Depreciation breakdown data (BEA Fixed Assets, 2024 estimates — 5 levels)
+const DEPRECIATION_TREE = {"name":"Depreciation (CCA)","value":5000,"children":[{"name":"Private","value":4300,"children":[{"name":"Nonresidential","value":3050,"children":[{"name":"Structures","value":650,"children":[{"name":"Commercial & Health Care","value":185,"children":[{"name":"Offices","value":55},{"name":"Hospitals & Medical","value":40},{"name":"Retail & Wholesale","value":35},{"name":"Warehouses","value":30},{"name":"Hotels & Lodging","value":25}]},{"name":"Power & Communication","value":155,"children":[{"name":"Electric Power","value":65},{"name":"Telecommunication","value":45},{"name":"Wind & Solar","value":25},{"name":"Gas Pipelines & Storage","value":20}]},{"name":"Mining & Petroleum","value":130,"children":[{"name":"Petroleum Wells","value":75},{"name":"Mining Shafts & Wells","value":30},{"name":"Gas Wells","value":25}]},{"name":"Manufacturing","value":80,"children":[{"name":"Chemical & Pharma Plants","value":25},{"name":"Food & Beverage Plants","value":15},{"name":"Semiconductor Fabs","value":15},{"name":"Auto & Machinery Plants","value":15},{"name":"Other Manufacturing","value":10}]},{"name":"Other Structures","value":100,"children":[{"name":"Educational & Religious","value":30},{"name":"Amusement & Recreation","value":25},{"name":"Transportation Facilities","value":25},{"name":"Farm Structures","value":20}]}]},{"name":"Equipment","value":1100,"children":[{"name":"Information Processing","value":450,"children":[{"name":"Computers & Peripherals","value":120},{"name":"Communication Equipment","value":105},{"name":"Software in Equipment","value":80},{"name":"Medical Instruments","value":55},{"name":"Electromedical Equipment","value":45},{"name":"Office Equipment","value":45}]},{"name":"Industrial Equipment","value":235,"children":[{"name":"Metalworking Machinery","value":45},{"name":"Special Industry Machinery","value":40},{"name":"General Industrial","value":40},{"name":"Construction Machinery","value":35},{"name":"Mining & Oilfield Machinery","value":35},{"name":"Service Industry Machinery","value":25},{"name":"Electrical Transmission","value":15}]},{"name":"Transportation Equipment","value":260,"children":[{"name":"Trucks & Light Vehicles","value":95},{"name":"Aircraft","value":60},{"name":"Heavy Trucks & Buses","value":40},{"name":"Railroad Equipment","value":25},{"name":"Ships & Boats","value":20},{"name":"Autos","value":20}]},{"name":"Other Equipment","value":155,"children":[{"name":"Furniture & Fixtures","value":40},{"name":"Agricultural Machinery","value":35},{"name":"Electrical Equipment","value":30},{"name":"Engines & Turbines","value":25},{"name":"Household Equipment","value":25}]}]},{"name":"Intellectual Property","value":1300,"children":[{"name":"Software","value":585,"children":[{"name":"Custom Software","value":235},{"name":"Prepackaged Software","value":210},{"name":"Own-Account Software","value":140}]},{"name":"Research & Development","value":630,"children":[{"name":"Pharma & Medicine","value":145},{"name":"Semiconductor & Electronics","value":85},{"name":"Software R&D","value":80},{"name":"Aerospace & Defense","value":65},{"name":"Chemical Manufacturing","value":50},{"name":"Automotive & Transport","value":45},{"name":"Other Manufacturing R&D","value":60},{"name":"Nonmanufacturing R&D","value":100}]},{"name":"Entertainment Originals","value":85,"children":[{"name":"Television Programs","value":30},{"name":"Theatrical Movies","value":25},{"name":"Books & Music","value":15},{"name":"Other Originals","value":15}]}]}]},{"name":"Residential","value":750,"children":[{"name":"Structures","value":730,"children":[{"name":"Single-Family","value":420,"children":[{"name":"Owner-Occupied","value":310},{"name":"Tenant-Occupied","value":110}]},{"name":"Multi-Family","value":210,"children":[{"name":"2-4 Unit Buildings","value":60},{"name":"5+ Unit Buildings","value":150}]},{"name":"Other Residential","value":100,"children":[{"name":"Manufactured Homes","value":40},{"name":"Improvements & Commissions","value":45},{"name":"Dormitories & Other","value":15}]}]},{"name":"Equipment & Other","value":20,"children":[{"name":"Residential Equipment","value":12},{"name":"Residential IP Products","value":8}]}]},{"name":"Nonprofit Institutions","value":500,"children":[{"name":"Structures","value":180,"children":[{"name":"Educational Buildings","value":65},{"name":"Hospitals & Health Care","value":55},{"name":"Religious Buildings","value":30},{"name":"Other Nonprofit","value":30}]},{"name":"Equipment","value":120,"children":[{"name":"Medical & Scientific","value":45},{"name":"Information Processing","value":35},{"name":"Transportation","value":20},{"name":"Other Equipment","value":20}]},{"name":"Intellectual Property","value":200,"children":[{"name":"R&D","value":110},{"name":"Software","value":75},{"name":"Entertainment & Artistic","value":15}]}]}]},{"name":"Government","value":700,"children":[{"name":"Federal","value":300,"children":[{"name":"Defense","value":195,"children":[{"name":"Defense Equipment","value":120,"children":[{"name":"Aircraft & Missiles","value":45},{"name":"Ships & Submarines","value":25},{"name":"Vehicles & Tanks","value":20},{"name":"Electronics & Comms","value":15},{"name":"Weapons & Ordnance","value":15}]},{"name":"Defense IP","value":45,"children":[{"name":"Weapons R&D","value":25},{"name":"Defense Software","value":15},{"name":"Other Defense IP","value":5}]},{"name":"Defense Structures","value":30,"children":[{"name":"Military Bases","value":18},{"name":"Shipyards & Airfields","value":12}]}]},{"name":"Nondefense","value":105,"children":[{"name":"Nondefense IP","value":50,"children":[{"name":"Federal R&D (NASA, NIH, DOE)","value":35},{"name":"Government Software","value":12},{"name":"Other Nondefense IP","value":3}]},{"name":"Nondefense Structures","value":30,"children":[{"name":"Federal Office Buildings","value":12},{"name":"Conservation & Development","value":10},{"name":"Other Federal Structures","value":8}]},{"name":"Nondefense Equipment","value":25,"children":[{"name":"Vehicles & Transportation","value":8},{"name":"Information Processing","value":7},{"name":"Scientific Instruments","value":5},{"name":"Other Equipment","value":5}]}]}]},{"name":"State & Local","value":400,"children":[{"name":"Structures","value":240,"children":[{"name":"Highways & Streets","value":95,"children":[{"name":"Other Highways & Roads","value":40},{"name":"Interstate Highways","value":30},{"name":"Bridges & Tunnels","value":25}]},{"name":"Educational Buildings","value":55,"children":[{"name":"Primary & Secondary Schools","value":35},{"name":"Higher Education","value":20}]},{"name":"Water & Sewer Systems","value":45,"children":[{"name":"Water Supply","value":25},{"name":"Sewage & Waste Disposal","value":20}]},{"name":"Other S&L Structures","value":45,"children":[{"name":"Public Safety Buildings","value":15},{"name":"Hospitals & Health","value":12},{"name":"Transit & Transportation","value":10},{"name":"Parks & Recreation","value":8}]}]},{"name":"Equipment","value":95,"children":[{"name":"Transit Vehicles & Buses","value":25},{"name":"Information Processing","value":20},{"name":"Construction & Maintenance","value":15},{"name":"Public Safety Vehicles","value":15},{"name":"Other S&L Equipment","value":20}]},{"name":"Intellectual Property","value":65,"children":[{"name":"Software","value":40},{"name":"R&D (Universities & Labs)","value":20},{"name":"Other IP","value":5}]}]}]}]};
+
+// Color scale for tree depth levels
+const TREE_COLORS = [
+  "#d94701",  // root: business orange
+  "#e6550d",  // level 1
+  "#fd8d3c",  // level 2
+  "#fdae6b",  // level 3 (leaves)
+];
+
+let treeGroup = null;
+
+// Add back button to container
+const backBtn = document.createElement("button");
+backBtn.className = "tree-back-btn";
+backBtn.setAttribute("aria-label", "Back to Sankey overview");
+backBtn.innerHTML = '<span class="arrow" aria-hidden="true">&larr;</span> Back to overview';
+document.querySelector(".sankey-container").appendChild(backBtn);
+
+backBtn.addEventListener("click", function(event) {
+  event.stopPropagation();
+  exitTreeView();
+});
+
+// Add "click to explore" hint on the depreciation node
+const depNodeG = nodes.filter(n => n.id === 7);
+depNodeG.select("rect")
+  .attr("tabindex", 0)
+  .attr("role", "button")
+  .attr("aria-label", "Depreciation (CCA) — click to explore breakdown");
+depNodeG.append("text")
+  .attr("class", "depreciation-hint")
+  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("y", d => (d.y1 - d.y0) / 2 + 26)
+  .attr("dy", "0.35em")
+  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .text("Click to explore \u25B6");
+
+// Escape key exits tree view
+document.addEventListener("keydown", function(event) {
+  if (event.key === "Escape" && treeViewActive && !treeTransitioning) {
+    exitTreeView();
+  }
+});
+
+// Respect reduced-motion preference for D3 transitions
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const DUR_FADE_OUT = reducedMotion ? 0 : 400;
+const DUR_FADE_IN  = reducedMotion ? 0 : 500;
+const DUR_TREE_OUT = reducedMotion ? 0 : 300;
+
+// Helper: count-based transition completion that handles interrupts
+function onAllDone(selection, callback) {
+  let count = 0;
+  const total = selection.size();
+  if (total === 0) { callback(); return; }
+  function tick() {
+    count++;
+    if (count === total) callback();
+  }
+  selection.on("end.done", tick).on("interrupt.done", tick);
+}
+
+function enterTreeView() {
+  if (treeTransitioning) return;
+  treeViewActive = true;
+  treeTransitioning = true;
+  selectedNode = null;
+  clearHighlight();
+  hideTooltip();
+  document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("is-active"));
+
+  // Interrupt any in-flight transitions
+  svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
+  if (treeGroup) {
+    treeGroup.interrupt();
+    treeGroup.remove();
+    treeGroup = null;
+  }
+
+  // Fade out Sankey elements, then render treemap
+  const sankeyEls = svg.selectAll(".sankey-links, .sankey-nodes");
+
+  const t = sankeyEls
+    .transition()
+    .duration(DUR_FADE_OUT)
+    .style("opacity", 0);
+
+  onAllDone(t, function() {
+    sankeyEls.style("display", "none");
+    renderTree();
+    treeTransitioning = false;
+  });
+
+  // Show back button and focus it for keyboard users
+  backBtn.classList.add("is-visible");
+  requestAnimationFrame(() => backBtn.focus());
+}
+
+function exitTreeView() {
+  if (!treeViewActive || treeTransitioning) return;
+  treeViewActive = false;
+  treeTransitioning = true;
+  hideTooltip();
+
+  // Hide back button
+  backBtn.classList.remove("is-visible");
+
+  // Interrupt any in-flight transitions on Sankey elements
+  svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
+
+  // Fade out and remove tree
+  if (treeGroup) {
+    treeGroup.interrupt();
+    treeGroup
+      .transition()
+      .duration(DUR_TREE_OUT)
+      .style("opacity", 0)
+      .on("end", function() { d3.select(this).remove(); })
+      .on("interrupt", function() { d3.select(this).remove(); });
+    treeGroup = null;
+  }
+
+  // Clear any stale highlight state
+  clearHighlight();
+  document.querySelectorAll(".legend-item").forEach(el => el.classList.remove("is-active"));
+
+  // Fade Sankey back in
+  const restoreEls = svg.selectAll(".sankey-links, .sankey-nodes");
+  restoreEls
+    .style("display", null)
+    .style("opacity", 0);
+
+  const t = restoreEls
+    .transition()
+    .duration(DUR_FADE_OUT)
+    .style("opacity", 1);
+
+  onAllDone(t, function() {
+    treeTransitioning = false;
+    // Return focus to depreciation node for keyboard users
+    const depRect = depNodeG.select("rect").node();
+    if (depRect) depRect.focus();
+  });
+}
+
+// Abbreviation map for small treemap cells
+const ABBREV = {
+  "Structures": "Struc.", "Equipment": "Equip.", "Intellectual Property": "IP",
+  "Nonresidential": "Non-Res.", "Information Processing": "Info Proc.",
+  "Transportation Equipment": "Transport", "Industrial Equipment": "Industrial",
+  "Entertainment Originals": "Entertain.", "Research & Development": "R&D",
+  "Commercial & Health Care": "Comm/Health", "Power & Communication": "Power/Comm",
+  "Mining & Petroleum": "Mining/Petro", "Manufacturing": "Mfg.",
+  "Equipment & Other": "Equip.", "Nonprofit Institutions": "Nonprofit",
+  "Improvements & Commissions": "Improve.", "Dormitories & Other": "Dorms etc.",
+  "Construction & Maintenance": "Const/Maint"
+};
+
+function renderTree() {
+  const tmWidth = dims.width;
+  const tmHeight = dims.height - 30;
+  const titleOffset = 30;
+
+  // Build hierarchy
+  const root = d3.hierarchy(DEPRECIATION_TREE)
+    .sum(d => d.children ? 0 : d.value)
+    .sort((a, b) => b.value - a.value);
+
+  // Treemap layout with depth-adaptive padding
+  d3.treemap()
+    .size([tmWidth, tmHeight])
+    .paddingTop(d => {
+      if (d.depth === 0) return 0;
+      if (d.depth === 1) return 18;
+      if (d.depth === 2) return 15;
+      if (d.depth === 3) return 12;
+      return 0;
+    })
+    .paddingInner(2)
+    .paddingOuter(1)
+    .round(true)
+    (root);
+
+  // HSL depth-based color: Private=orange family, Government=blue family
+  function cellColor(d) {
+    let ancestor = d;
+    while (ancestor.depth > 1) ancestor = ancestor.parent;
+    const isPrivate = ancestor.data.name === "Private";
+    const hueBase = isPrivate ? 25 : 210;
+    const hueRange = isPrivate ? 25 : 30;
+
+    const depth = Math.min(d.depth, 5);
+    const sat = 80 - (depth - 1) * 10;
+    const lit = 38 + (depth - 1) * 9;
+
+    const siblings = d.parent ? d.parent.children : [d];
+    const idx = siblings.indexOf(d);
+    const hueShift = siblings.length > 1
+      ? (idx / (siblings.length - 1) - 0.5) * hueRange
+      : 0;
+
+    return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
+  }
+
+  function useDarkText(d) {
+    const depth = Math.min(d.depth, 5);
+    const lit = 38 + (depth - 1) * 9;
+    return lit > 58;
+  }
+
+  // Create group for treemap
+  treeGroup = svg.append("g")
+    .attr("class", "tree-view")
+    .attr("role", "img")
+    .attr("aria-label", "Treemap showing breakdown of $5 trillion in US depreciation by sector and asset type, 2024")
+    .style("opacity", 0);
+
+  // Title
+  treeGroup.append("text")
+    .attr("class", "treemap-title")
+    .attr("x", 0)
+    .attr("y", -6)
+    .text("Depreciation (CCA): Where $5 Trillion in Capital Wears Out");
+
+  treeGroup.append("text")
+    .attr("class", "treemap-subtitle")
+    .attr("x", 0)
+    .attr("y", 12)
+    .text("Consumption of fixed capital by sector and asset type, 2024 (billions USD)");
+
+  const tmContent = treeGroup.append("g")
+    .attr("transform", `translate(0, ${titleOffset})`);
+
+  // Draw group labels (depth 1-3, non-leaf nodes)
+  const groups = root.descendants().filter(d => d.depth > 0 && d.depth <= 3 && d.children);
+  tmContent.selectAll(".treemap-group-label")
+    .data(groups)
+    .join("text")
+      .attr("class", d => `treemap-group-label treemap-group-label--d${d.depth}`)
+      .attr("x", d => d.x0 + 4)
+      .attr("y", d => d.y0 + (d.depth === 1 ? 13 : d.depth === 2 ? 12 : 10))
+      .text(d => {
+        const cellWidth = d.x1 - d.x0;
+        if (cellWidth < 60) return "";
+        const label = `${d.data.name} ${formatValue(d.value)}`;
+        if (label.length * 6 > cellWidth - 8) return d.data.name;
+        return label;
+      });
+
+  // Draw leaf cells
+  const leaves = root.leaves();
+
+  const cells = tmContent.selectAll(".treemap-cell")
+    .data(leaves)
+    .join("g")
+      .attr("class", "treemap-cell")
+      .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+  cells.append("rect")
+    .attr("width", d => Math.max(0, d.x1 - d.x0))
+    .attr("height", d => Math.max(0, d.y1 - d.y0))
+    .attr("rx", 2)
+    .attr("ry", 2)
+    .attr("fill", d => cellColor(d));
+
+  // Tiered label strategy based on cell dimensions
+  cells.each(function(d) {
+    const w = d.x1 - d.x0;
+    const h = d.y1 - d.y0;
+    const g = d3.select(this);
+    const dark = useDarkText(d);
+    const labelFill = dark ? "var(--color-text-primary)" : "#fff";
+    const valueFill = dark ? "var(--color-text-secondary)" : "rgba(255,255,255,0.85)";
+    const pctFill   = dark ? "var(--color-text-tertiary)" : "rgba(255,255,255,0.7)";
+
+    // Tier 4: too small for anything
+    if (w < 25 || h < 14) return;
+
+    // Tier 3: abbreviation only (tiny cells)
+    if (w < 40 || h < 22) {
+      const abbr = ABBREV[d.data.name] || d.data.name.slice(0, Math.floor((w - 6) / 5.5));
+      g.append("text")
+        .attr("class", "treemap-cell-label treemap-cell-label--xs")
+        .attr("x", 3).attr("y", h / 2 + 3)
+        .attr("fill", labelFill)
+        .text(abbr);
+      return;
+    }
+
+    // Tier 2: name only, possibly truncated
+    if (w < 60 || h < 36) {
+      const maxChars = Math.floor((w - 8) / 5.5);
+      const name = d.data.name;
+      const display = name.length > maxChars ? (ABBREV[name] || name.slice(0, maxChars - 1) + "\u2026") : name;
+      g.append("text")
+        .attr("class", "treemap-cell-label treemap-cell-label--sm")
+        .attr("x", 4).attr("y", 13)
+        .attr("fill", labelFill)
+        .text(display);
+      return;
+    }
+
+    // Tier 1: full labels
+    const maxChars = Math.floor((w - 10) / 6.5);
+    const name = d.data.name;
+    g.append("text")
+      .attr("class", "treemap-cell-label")
+      .attr("x", 5).attr("y", 14)
+      .attr("fill", labelFill)
+      .text(name.length > maxChars ? name.slice(0, maxChars - 1) + "\u2026" : name);
+
+    if (h >= 34) {
+      g.append("text")
+        .attr("class", "treemap-cell-value")
+        .attr("x", 5).attr("y", 27)
+        .attr("fill", valueFill)
+        .text(formatValue(d.value));
+    }
+
+    if (h >= 48 && w >= 80) {
+      const pct = (d.value / root.value * 100).toFixed(1);
+      g.append("text")
+        .attr("class", "treemap-cell-pct")
+        .attr("x", 5).attr("y", 39)
+        .attr("fill", pctFill)
+        .text(`${pct}% of total`);
+    }
+  });
+
+  // Prevent cell clicks from bubbling to body (which would exit tree view)
+  cells.on("click", function(event) {
+    event.stopPropagation();
+  });
+
+  // Hover: highlight sibling group + tooltip with breadcrumb path
+  cells
+    .on("mouseover", function(event, d) {
+      // Dim all cells, highlight siblings
+      cells.select("rect").style("opacity", 0.6);
+      const siblingLeaves = d.parent ? d.parent.leaves() : [d];
+      cells.filter(c => siblingLeaves.includes(c))
+        .select("rect").style("opacity", 1).style("filter", "brightness(1.08)");
+      d3.select(this).select("rect")
+        .style("opacity", 1).style("filter", "brightness(1.15)")
+        .style("stroke", "#fff").style("stroke-width", "2px");
+
+      // Tooltip with breadcrumb path
+      const ancestors = d.ancestors().reverse().slice(1).map(a => a.data.name);
+      let path = ancestors.join(" \u203A ");
+      if (path.length > 45 && ancestors.length > 3) {
+        path = `${ancestors[0]} \u203A \u2026 \u203A ${ancestors.slice(-2).join(" \u203A ")}`;
+      }
+      const pct = (d.value / root.value * 100).toFixed(1);
+      const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${cellColor(d)}"></span>${d.data.name}</div>` +
+        `<div class="tooltip-value">${formatValue(d.value)}</div>` +
+        `<div class="tooltip-detail">${pct}% of total depreciation</div>` +
+        `<div class="tooltip-detail" style="margin-top:4px;color:var(--color-text-tertiary)">${path}</div>`;
+      tooltip.html(html);
+      showTooltip(event);
+    })
+    .on("mousemove", function(event) {
+      positionTooltip(event);
+    })
+    .on("mouseout", function() {
+      // Reset all cells
+      cells.select("rect")
+        .style("opacity", null).style("filter", null)
+        .style("stroke", null).style("stroke-width", null);
+      hideTooltip();
+    });
+
+  // Fade in
+  treeGroup
+    .transition()
+    .duration(DUR_FADE_IN)
+    .style("opacity", 1);
+}
 </script>
 </body>
 </html>

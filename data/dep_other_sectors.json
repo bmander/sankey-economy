@@ -1,0 +1,275 @@
+{
+  "metadata": {
+    "description": "Depreciation detail for Private Residential, Nonprofit, and Government sectors",
+    "sources": [
+      "BEA Fixed Assets Accounts Tables, September 2025 update (data through 2024)",
+      "FRED: B2607C1A027NBEA - Owner-occupied housing CFC ($629.5B, 2024)",
+      "FRED: W279RC1A027NBEA - Households & Institutions CFC ($878.3B, 2024)",
+      "FRED: M1R53101ES000 - Residential depreciation ($798.8B, 2024)",
+      "FRED: A918RC1A027NBEA - Federal government CFC ($393.4B, 2024)",
+      "FRED: A919RC1A027NBEA - State & Local CFC ($410.4B, 2024)",
+      "FRED: B432RC1A027NBEA - Federal defense CFC ($209.7B, 2024)",
+      "FRED: B546RC1A027NBEA - Federal nondefense CFC ($169.7B, 2024)",
+      "FRED: Y085RC1A027NBEA - Government equipment CFC ($177.1B, 2024)",
+      "FRED: Y091RC1A027NBEA - Government IP CFC ($299.6B, 2024)",
+      "FRED: M1GTOTL1SA000 - Government residential CFC ($8.2B, 2024)",
+      "BEA NIPA Handbook Chapter 6 (residential structure types)",
+      "BEA NIPA Handbook Chapter 9 (government consumption expenditures)",
+      "BEA Detailed Fixed Assets Tables 2.4 (residential by type and ownership)"
+    ],
+    "scaling_note": "BEA proportions applied to Sankey model parent values ($750B residential, $500B nonprofit, $700B government). Actual BEA 2024 totals differ due to GDP model scaling."
+  },
+  "residential": {
+    "name": "Residential",
+    "value": 750,
+    "children": [
+      {
+        "name": "Structures",
+        "value": 730,
+        "children": [
+          {
+            "name": "Single-Family Permanent",
+            "value": 420,
+            "source": "BEA Detailed Fixed Assets Table 2.4: 1-unit structures are ~57% of residential depreciation. BEA data shows owner-occupied housing is ~72% of household CFC (B2607C/W279RC = 629.5/878.3).",
+            "children": [
+              { "name": "Owner-Occupied (1-unit)", "value": 310 },
+              { "name": "Tenant-Occupied (1-unit)", "value": 110 }
+            ]
+          },
+          {
+            "name": "Multi-Family",
+            "value": 210,
+            "source": "BEA Detailed Fixed Assets Table 2.4: Multi-unit structures are ~29% of residential structure depreciation. Split between small (2-4 unit) and large (5+ unit) buildings based on housing stock composition.",
+            "children": [
+              { "name": "2-4 Unit Buildings", "value": 60 },
+              { "name": "5+ Unit Buildings", "value": 150 }
+            ]
+          },
+          {
+            "name": "Other Residential",
+            "value": 100,
+            "source": "BEA Detailed Fixed Assets Table 2.4: Includes manufactured homes, improvements, brokers' commissions, and other residential structures (dormitories, etc.).",
+            "children": [
+              { "name": "Manufactured Homes", "value": 40 },
+              { "name": "Improvements & Brokers' Commissions", "value": 45 },
+              { "name": "Other (Dormitories, etc.)", "value": 15 }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Equipment & Other",
+        "value": 20,
+        "source": "BEA Fixed Assets: Residential equipment and IP are a very small share (~2.5%) of residential depreciation. Includes appliances, fixtures embedded in rental properties.",
+        "children": [
+          { "name": "Residential Equipment", "value": 12 },
+          { "name": "Residential IP Products", "value": 8 }
+        ]
+      }
+    ]
+  },
+  "nonprofit": {
+    "name": "Nonprofit Institutions",
+    "value": 500,
+    "source": "BEA NIPA: Households & Institutions CFC ($878.3B) minus Owner-occupied housing ($629.5B) = $248.8B for non-housing household/institution CFC. Nonprofit NPISH sector estimated at ~28% of total household & institution CFC based on BEA sector accounts. Scaled to $500B for Sankey model.",
+    "children": [
+      {
+        "name": "Structures",
+        "value": 180,
+        "source": "BEA Fixed Assets: Nonprofit structures ~36% of nonprofit CFC. Includes educational, health care, religious, and social service buildings.",
+        "children": [
+          { "name": "Educational Buildings", "value": 65 },
+          { "name": "Hospitals & Health Care", "value": 55 },
+          { "name": "Religious Buildings", "value": 30 },
+          { "name": "Other Nonprofit Structures", "value": 30 }
+        ]
+      },
+      {
+        "name": "Equipment",
+        "value": 120,
+        "source": "BEA Fixed Assets: Nonprofit equipment ~24% of nonprofit CFC. Medical and scientific equipment dominates due to hospital sector.",
+        "children": [
+          { "name": "Medical & Scientific Equipment", "value": 45 },
+          { "name": "Information Processing", "value": 35 },
+          { "name": "Transportation Equipment", "value": 20 },
+          { "name": "Other Equipment", "value": 20 }
+        ]
+      },
+      {
+        "name": "Intellectual Property",
+        "value": 200,
+        "source": "BEA Fixed Assets: Nonprofit IP ~40% of nonprofit CFC. R&D dominates due to university and medical research. Software share growing rapidly.",
+        "children": [
+          { "name": "Software", "value": 75 },
+          { "name": "Research & Development", "value": 110 },
+          { "name": "Entertainment & Artistic Originals", "value": 15 }
+        ]
+      }
+    ]
+  },
+  "government": {
+    "name": "Government",
+    "value": 700,
+    "source": "BEA NIPA: Total government CFC = $803.8B (Federal $393.4B + S&L $410.4B). Scaled to $700B for Sankey model. Federal/S&L ratio: 48.9%/51.1%.",
+    "children": [
+      {
+        "name": "Federal",
+        "value": 300,
+        "source": "FRED A918RC1A027NBEA: Federal CFC = $393.4B (2024). Defense/nondefense split: B432RC=$209.7B defense, B546RC=$169.7B nondefense (general government portion).",
+        "children": [
+          {
+            "name": "Defense",
+            "value": 195,
+            "source": "FRED B432RC1A027NBEA: Defense CFC = $209.7B (2024). BEA: ~55% equipment (aircraft, ships, vehicles), ~15% structures (bases, installations), ~23% IP (weapons R&D, software). Defense represents 53% of federal CFC.",
+            "children": [
+              {
+                "name": "Defense Structures",
+                "value": 30,
+                "source": "BEA Fixed Assets Table 5.4: Defense structures ~15% of defense CFC. Includes military bases, installations, airfields, shipyards.",
+                "children": [
+                  { "name": "Military Bases & Installations", "value": 18 },
+                  { "name": "Shipyards & Airfields", "value": 12 }
+                ]
+              },
+              {
+                "name": "Defense Equipment",
+                "value": 120,
+                "source": "BEA Fixed Assets Table 5.4: Defense equipment ~62% of defense CFC. Dominated by aircraft, missiles, ships, and military vehicles with high depreciation rates.",
+                "children": [
+                  { "name": "Aircraft & Missiles", "value": 45 },
+                  { "name": "Ships & Submarines", "value": 25 },
+                  { "name": "Vehicles & Tanks", "value": 20 },
+                  { "name": "Electronics & Communication", "value": 15 },
+                  { "name": "Weapons & Ordnance", "value": 15 }
+                ]
+              },
+              {
+                "name": "Defense IP",
+                "value": 45,
+                "source": "BEA Fixed Assets Table 5.4 and FRED Y091RC: Defense IP ~23% of defense CFC. Weapons systems R&D is the dominant component.",
+                "children": [
+                  { "name": "Weapons R&D", "value": 25 },
+                  { "name": "Defense Software", "value": 15 },
+                  { "name": "Other Defense IP", "value": 5 }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Nondefense",
+            "value": 105,
+            "source": "FRED B546RC1A027NBEA: Nondefense CFC = $169.7B (2024). BEA: ~48% IP (R&D at NASA/NIH/DOE, software), ~24% equipment, ~28% structures. Nondefense represents 43% of federal CFC.",
+            "children": [
+              {
+                "name": "Nondefense Structures",
+                "value": 30,
+                "source": "BEA Fixed Assets Table 5.4: Nondefense structures ~29% of nondefense CFC. Includes federal office buildings, conservation facilities, postal facilities.",
+                "children": [
+                  { "name": "Federal Office Buildings", "value": 12 },
+                  { "name": "Conservation & Development", "value": 10 },
+                  { "name": "Other Federal Structures", "value": 8 }
+                ]
+              },
+              {
+                "name": "Nondefense Equipment",
+                "value": 25,
+                "source": "BEA Fixed Assets Table 5.4: Nondefense equipment ~24% of nondefense CFC. Includes vehicles, IT equipment, scientific instruments.",
+                "children": [
+                  { "name": "Vehicles & Transportation", "value": 8 },
+                  { "name": "Information Processing", "value": 7 },
+                  { "name": "Scientific Instruments", "value": 5 },
+                  { "name": "Other Equipment", "value": 5 }
+                ]
+              },
+              {
+                "name": "Nondefense IP",
+                "value": 50,
+                "source": "BEA Fixed Assets Table 5.4 and FRED Y091RC: Nondefense IP ~48% of nondefense CFC. Dominated by federal R&D spending at NIH, NASA, DOE, and government software systems.",
+                "children": [
+                  { "name": "Federal R&D (NASA, NIH, DOE)", "value": 35 },
+                  { "name": "Government Software", "value": 12 },
+                  { "name": "Other Nondefense IP", "value": 3 }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "State & Local",
+        "value": 400,
+        "source": "FRED A919RC1A027NBEA: State & Local CFC = $410.4B (2024). BEA: ~60% structures (highways, schools, water systems), ~24% equipment, ~16% IP. S&L represents 51% of total government CFC.",
+        "children": [
+          {
+            "name": "Structures",
+            "value": 240,
+            "source": "BEA Fixed Assets Table 5.4: S&L structures ~60% of S&L CFC. Infrastructure dominates: highways/streets are the single largest category, followed by educational buildings and water/sewer systems.",
+            "children": [
+              {
+                "name": "Highways & Streets",
+                "value": 95,
+                "source": "BEA Fixed Assets: Highways & streets are ~40% of S&L structures CFC. Includes interstates (federal-aid), state highways, local roads, bridges, and tunnels.",
+                "children": [
+                  { "name": "Interstate Highways", "value": 30 },
+                  { "name": "Other Highways & Roads", "value": 40 },
+                  { "name": "Bridges & Tunnels", "value": 25 }
+                ]
+              },
+              {
+                "name": "Educational Buildings",
+                "value": 55,
+                "source": "BEA Fixed Assets: Educational structures are ~23% of S&L structures CFC. Public K-12 schools dominate, with higher education a smaller share.",
+                "children": [
+                  { "name": "Primary & Secondary Schools", "value": 35 },
+                  { "name": "Higher Education", "value": 20 }
+                ]
+              },
+              {
+                "name": "Water & Sewer Systems",
+                "value": 45,
+                "source": "BEA Fixed Assets: Water supply and sewage/waste disposal are ~19% of S&L structures CFC.",
+                "children": [
+                  { "name": "Water Supply", "value": 25 },
+                  { "name": "Sewage & Waste Disposal", "value": 20 }
+                ]
+              },
+              {
+                "name": "Other S&L Structures",
+                "value": 45,
+                "source": "BEA Fixed Assets: Remaining S&L structures include public safety, hospitals, transit, parks. Each relatively small individually.",
+                "children": [
+                  { "name": "Public Safety Buildings", "value": 15 },
+                  { "name": "Hospitals & Health", "value": 12 },
+                  { "name": "Transit & Transportation", "value": 10 },
+                  { "name": "Parks & Recreation", "value": 8 }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "Equipment",
+            "value": 95,
+            "source": "BEA Fixed Assets Table 5.4: S&L equipment ~24% of S&L CFC. Transit vehicles, IT equipment, construction machinery, and public safety vehicles.",
+            "children": [
+              { "name": "Transit Vehicles & Buses", "value": 25 },
+              { "name": "Information Processing", "value": 20 },
+              { "name": "Construction & Maintenance Equipment", "value": 15 },
+              { "name": "Public Safety Vehicles", "value": 15 },
+              { "name": "Other S&L Equipment", "value": 20 }
+            ]
+          },
+          {
+            "name": "Intellectual Property",
+            "value": 65,
+            "source": "BEA Fixed Assets Table 5.4 and FRED Y091RC: S&L IP ~16% of S&L CFC. Software is the largest component, followed by university-based R&D.",
+            "children": [
+              { "name": "Software", "value": 40 },
+              { "name": "R&D (Universities & Labs)", "value": 20 },
+              { "name": "Other IP", "value": 5 }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
