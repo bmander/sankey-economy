@@ -464,9 +464,9 @@ nodes.on("click", function(event, d) {
   // Block all clicks during transitions
   if (treeTransitioning) return;
 
-  // If depreciation node is clicked, enter tree drill-down
-  if (d.id === 7 && !treeViewActive) {
-    enterTreeView();
+  // If a drillable node is clicked, enter tree drill-down
+  if (TREE_CONFIGS[d.id] && !treeViewActive) {
+    enterTreeView(d.id);
     return;
   }
 
@@ -593,15 +593,56 @@ window.addEventListener("resize", () => {
 // Depreciation breakdown data (BEA Fixed Assets, 2024 estimates — 5 levels)
 const DEPRECIATION_TREE = {"name":"Depreciation (CCA)","value":5000,"children":[{"name":"Private","value":4300,"children":[{"name":"Nonresidential","value":3050,"children":[{"name":"Structures","value":650,"children":[{"name":"Commercial & Health Care","value":185,"children":[{"name":"Offices","value":55},{"name":"Hospitals & Medical","value":40},{"name":"Retail & Wholesale","value":35},{"name":"Warehouses","value":30},{"name":"Hotels & Lodging","value":25}]},{"name":"Power & Communication","value":155,"children":[{"name":"Electric Power","value":65},{"name":"Telecommunication","value":45},{"name":"Wind & Solar","value":25},{"name":"Gas Pipelines & Storage","value":20}]},{"name":"Mining & Petroleum","value":130,"children":[{"name":"Petroleum Wells","value":75},{"name":"Mining Shafts & Wells","value":30},{"name":"Gas Wells","value":25}]},{"name":"Manufacturing","value":80,"children":[{"name":"Chemical & Pharma Plants","value":25},{"name":"Food & Beverage Plants","value":15},{"name":"Semiconductor Fabs","value":15},{"name":"Auto & Machinery Plants","value":15},{"name":"Other Manufacturing","value":10}]},{"name":"Other Structures","value":100,"children":[{"name":"Educational & Religious","value":30},{"name":"Amusement & Recreation","value":25},{"name":"Transportation Facilities","value":25},{"name":"Farm Structures","value":20}]}]},{"name":"Equipment","value":1100,"children":[{"name":"Information Processing","value":450,"children":[{"name":"Computers & Peripherals","value":120},{"name":"Communication Equipment","value":105},{"name":"Software in Equipment","value":80},{"name":"Medical Instruments","value":55},{"name":"Electromedical Equipment","value":45},{"name":"Office Equipment","value":45}]},{"name":"Industrial Equipment","value":235,"children":[{"name":"Metalworking Machinery","value":45},{"name":"Special Industry Machinery","value":40},{"name":"General Industrial","value":40},{"name":"Construction Machinery","value":35},{"name":"Mining & Oilfield Machinery","value":35},{"name":"Service Industry Machinery","value":25},{"name":"Electrical Transmission","value":15}]},{"name":"Transportation Equipment","value":260,"children":[{"name":"Trucks & Light Vehicles","value":95},{"name":"Aircraft","value":60},{"name":"Heavy Trucks & Buses","value":40},{"name":"Railroad Equipment","value":25},{"name":"Ships & Boats","value":20},{"name":"Autos","value":20}]},{"name":"Other Equipment","value":155,"children":[{"name":"Furniture & Fixtures","value":40},{"name":"Agricultural Machinery","value":35},{"name":"Electrical Equipment","value":30},{"name":"Engines & Turbines","value":25},{"name":"Household Equipment","value":25}]}]},{"name":"Intellectual Property","value":1300,"children":[{"name":"Software","value":585,"children":[{"name":"Custom Software","value":235},{"name":"Prepackaged Software","value":210},{"name":"Own-Account Software","value":140}]},{"name":"Research & Development","value":630,"children":[{"name":"Pharma & Medicine","value":145},{"name":"Semiconductor & Electronics","value":85},{"name":"Software R&D","value":80},{"name":"Aerospace & Defense","value":65},{"name":"Chemical Manufacturing","value":50},{"name":"Automotive & Transport","value":45},{"name":"Other Manufacturing R&D","value":60},{"name":"Nonmanufacturing R&D","value":100}]},{"name":"Entertainment Originals","value":85,"children":[{"name":"Television Programs","value":30},{"name":"Theatrical Movies","value":25},{"name":"Books & Music","value":15},{"name":"Other Originals","value":15}]}]}]},{"name":"Residential","value":750,"children":[{"name":"Structures","value":730,"children":[{"name":"Single-Family","value":420,"children":[{"name":"Owner-Occupied","value":310},{"name":"Tenant-Occupied","value":110}]},{"name":"Multi-Family","value":210,"children":[{"name":"2-4 Unit Buildings","value":60},{"name":"5+ Unit Buildings","value":150}]},{"name":"Other Residential","value":100,"children":[{"name":"Manufactured Homes","value":40},{"name":"Improvements & Commissions","value":45},{"name":"Dormitories & Other","value":15}]}]},{"name":"Equipment & Other","value":20,"children":[{"name":"Residential Equipment","value":12},{"name":"Residential IP Products","value":8}]}]},{"name":"Nonprofit Institutions","value":500,"children":[{"name":"Structures","value":180,"children":[{"name":"Educational Buildings","value":65},{"name":"Hospitals & Health Care","value":55},{"name":"Religious Buildings","value":30},{"name":"Other Nonprofit","value":30}]},{"name":"Equipment","value":120,"children":[{"name":"Medical & Scientific","value":45},{"name":"Information Processing","value":35},{"name":"Transportation","value":20},{"name":"Other Equipment","value":20}]},{"name":"Intellectual Property","value":200,"children":[{"name":"R&D","value":110},{"name":"Software","value":75},{"name":"Entertainment & Artistic","value":15}]}]}]},{"name":"Government","value":700,"children":[{"name":"Federal","value":300,"children":[{"name":"Defense","value":195,"children":[{"name":"Defense Equipment","value":120,"children":[{"name":"Aircraft & Missiles","value":45},{"name":"Ships & Submarines","value":25},{"name":"Vehicles & Tanks","value":20},{"name":"Electronics & Comms","value":15},{"name":"Weapons & Ordnance","value":15}]},{"name":"Defense IP","value":45,"children":[{"name":"Weapons R&D","value":25},{"name":"Defense Software","value":15},{"name":"Other Defense IP","value":5}]},{"name":"Defense Structures","value":30,"children":[{"name":"Military Bases","value":18},{"name":"Shipyards & Airfields","value":12}]}]},{"name":"Nondefense","value":105,"children":[{"name":"Nondefense IP","value":50,"children":[{"name":"Federal R&D (NASA, NIH, DOE)","value":35},{"name":"Government Software","value":12},{"name":"Other Nondefense IP","value":3}]},{"name":"Nondefense Structures","value":30,"children":[{"name":"Federal Office Buildings","value":12},{"name":"Conservation & Development","value":10},{"name":"Other Federal Structures","value":8}]},{"name":"Nondefense Equipment","value":25,"children":[{"name":"Vehicles & Transportation","value":8},{"name":"Information Processing","value":7},{"name":"Scientific Instruments","value":5},{"name":"Other Equipment","value":5}]}]}]},{"name":"State & Local","value":400,"children":[{"name":"Structures","value":240,"children":[{"name":"Highways & Streets","value":95,"children":[{"name":"Other Highways & Roads","value":40},{"name":"Interstate Highways","value":30},{"name":"Bridges & Tunnels","value":25}]},{"name":"Educational Buildings","value":55,"children":[{"name":"Primary & Secondary Schools","value":35},{"name":"Higher Education","value":20}]},{"name":"Water & Sewer Systems","value":45,"children":[{"name":"Water Supply","value":25},{"name":"Sewage & Waste Disposal","value":20}]},{"name":"Other S&L Structures","value":45,"children":[{"name":"Public Safety Buildings","value":15},{"name":"Hospitals & Health","value":12},{"name":"Transit & Transportation","value":10},{"name":"Parks & Recreation","value":8}]}]},{"name":"Equipment","value":95,"children":[{"name":"Transit Vehicles & Buses","value":25},{"name":"Information Processing","value":20},{"name":"Construction & Maintenance","value":15},{"name":"Public Safety Vehicles","value":15},{"name":"Other S&L Equipment","value":20}]},{"name":"Intellectual Property","value":65,"children":[{"name":"Software","value":40},{"name":"R&D (Universities & Labs)","value":20},{"name":"Other IP","value":5}]}]}]}]};
 
-// Color scale for tree depth levels
-const TREE_COLORS = [
-  "#d94701",  // root: business orange
-  "#e6550d",  // level 1
-  "#fd8d3c",  // level 2
-  "#fdae6b",  // level 3 (leaves)
-];
+// Housing & Utilities breakdown data (BEA PCE + Consumer Expenditure Survey, 2024 estimates)
+const HOUSING_TREE = {"name":"Housing & Utilities","value":4250,"children":[{"name":"Owned Housing","value":2350,"children":[{"name":"Imputed Rent","value":1750,"children":[{"name":"Single-Family Homes","value":1400,"children":[{"name":"Detached Houses","value":1150},{"name":"Townhomes","value":250}]},{"name":"Condos & Co-ops","value":250},{"name":"Mobile & Manufactured","value":100}]},{"name":"Maintenance & Repair","value":300,"children":[{"name":"Contractor Services","value":180,"children":[{"name":"Roofing & Exteriors","value":50},{"name":"Plumbing & Electrical","value":45},{"name":"Painting & Finishing","value":35},{"name":"HVAC","value":30},{"name":"Other Contractors","value":20}]},{"name":"Materials & DIY","value":120,"children":[{"name":"Building Materials","value":55},{"name":"Paint & Supplies","value":30},{"name":"Hardware & Tools","value":20},{"name":"Flooring","value":15}]}]},{"name":"Homeowners Insurance","value":180,"children":[{"name":"Property Insurance","value":130},{"name":"Mortgage Insurance","value":50}]},{"name":"Other Owner Costs","value":120,"children":[{"name":"HOA & Condo Fees","value":70},{"name":"Ground Rent & Other","value":50}]}]},{"name":"Rented Housing","value":850,"children":[{"name":"Apartments","value":550,"children":[{"name":"Large Complexes (50+ units)","value":280,"children":[{"name":"Market-Rate","value":210},{"name":"Luxury","value":70}]},{"name":"Mid-Size (5–49 units)","value":170},{"name":"Small Buildings (2–4 units)","value":100}]},{"name":"Single-Family Rentals","value":230,"children":[{"name":"Detached Homes","value":160},{"name":"Townhomes & Duplexes","value":70}]},{"name":"Other Rentals","value":70,"children":[{"name":"Subsidized & Public Housing","value":45},{"name":"Other","value":25}]}]},{"name":"Utilities","value":700,"children":[{"name":"Electricity","value":290,"children":[{"name":"Heating & Cooling","value":120},{"name":"Appliances & Lighting","value":110},{"name":"Water Heating","value":60}]},{"name":"Water, Sewer & Trash","value":150,"children":[{"name":"Water Supply","value":65},{"name":"Sewer Services","value":50},{"name":"Trash & Recycling","value":35}]},{"name":"Natural Gas","value":95,"children":[{"name":"Home Heating","value":60},{"name":"Cooking & Water Heating","value":35}]},{"name":"Other Utility Services","value":120,"children":[{"name":"Bundled Community Utilities","value":55},{"name":"Septic & Well Services","value":35},{"name":"Other","value":30}]},{"name":"Fuel Oil & Other Energy","value":45,"children":[{"name":"Fuel Oil & Propane","value":30},{"name":"Wood & Other Fuels","value":15}]}]},{"name":"Household Operations","value":350,"children":[{"name":"Domestic Services","value":110,"children":[{"name":"Childcare","value":55},{"name":"Cleaning Services","value":35},{"name":"Other Domestic","value":20}]},{"name":"Household Supplies","value":75,"children":[{"name":"Cleaning Products","value":30},{"name":"Paper & Disposables","value":25},{"name":"Other Supplies","value":20}]},{"name":"Other Operations","value":70,"children":[{"name":"Pest Control","value":20},{"name":"Security Systems","value":20},{"name":"Other Services","value":30}]},{"name":"Lawn & Garden","value":55,"children":[{"name":"Lawn Care Services","value":30},{"name":"Plants & Supplies","value":25}]},{"name":"Moving & Storage","value":40}]}]};
+
+// Treemap drill-down configurations keyed by Sankey node ID
+const TREE_CONFIGS = {
+  7: {
+    tree: DEPRECIATION_TREE,
+    title: "Depreciation (CCA): Where $5 Trillion in Capital Wears Out",
+    subtitle: "Consumption of fixed capital by sector and asset type, 2024 (billions USD)",
+    ariaLabel: "Treemap showing breakdown of $5 trillion in US depreciation by sector and asset type, 2024",
+    pctLabel: "total depreciation",
+    colorFn: function(d) {
+      let ancestor = d; while (ancestor.depth > 1) ancestor = ancestor.parent;
+      const isPrivate = ancestor.data.name === "Private";
+      const hueBase = isPrivate ? 25 : 210;
+      const hueRange = isPrivate ? 25 : 30;
+      const depth = Math.min(d.depth, 5);
+      const sat = 80 - (depth - 1) * 10;
+      const lit = 38 + (depth - 1) * 9;
+      const siblings = d.parent ? d.parent.children : [d];
+      const idx = siblings.indexOf(d);
+      const hueShift = siblings.length > 1 ? (idx / (siblings.length - 1) - 0.5) * hueRange : 0;
+      return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
+    }
+  },
+  20: {
+    tree: HOUSING_TREE,
+    title: "Housing & Utilities: Where $4.25 Trillion in Household Spending Goes",
+    subtitle: "Personal consumption expenditures on housing, utilities, and household operations, 2024 (billions USD)",
+    ariaLabel: "Treemap showing breakdown of $4.25 trillion in US housing and utilities spending, 2024",
+    pctLabel: "housing & utilities",
+    colorFn: function(d) {
+      let ancestor = d; while (ancestor.depth > 1) ancestor = ancestor.parent;
+      const name = ancestor.data.name;
+      const hueMap = {"Owned Housing": 145, "Rented Housing": 170, "Utilities": 45, "Household Operations": 90};
+      const hueBase = hueMap[name] || 145;
+      const hueRange = 20;
+      const depth = Math.min(d.depth, 5);
+      const sat = 70 - (depth - 1) * 8;
+      const lit = 35 + (depth - 1) * 9;
+      const siblings = d.parent ? d.parent.children : [d];
+      const idx = siblings.indexOf(d);
+      const hueShift = siblings.length > 1 ? (idx / (siblings.length - 1) - 0.5) * hueRange : 0;
+      return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
+    }
+  }
+};
 
 let treeGroup = null;
+let activeTreeId = null;
 
 // Add back button to container
 const backBtn = document.createElement("button");
@@ -615,13 +656,14 @@ backBtn.addEventListener("click", function(event) {
   exitTreeView();
 });
 
-// Add "click to explore" hint on the depreciation node
-const depNodeG = nodes.filter(n => n.id === 7);
-depNodeG.select("rect")
+// Add "click to explore" hints on drillable nodes
+const drillableIds = Object.keys(TREE_CONFIGS).map(Number);
+const drillableNodes = nodes.filter(n => drillableIds.includes(n.id));
+drillableNodes.select("rect")
   .attr("tabindex", 0)
   .attr("role", "button")
-  .attr("aria-label", "Depreciation (CCA) — click to explore breakdown");
-depNodeG.append("text")
+  .attr("aria-label", d => `${d.name} — click to explore breakdown`);
+drillableNodes.append("text")
   .attr("class", "depreciation-hint")
   .attr("x", d => labelOnLeft(d) ? -6 : sankey.nodeWidth() + 6)
   .attr("y", d => (d.y1 - d.y0) / 2 + 26)
@@ -654,8 +696,9 @@ function onAllDone(selection, callback) {
   selection.on("end.done", tick).on("interrupt.done", tick);
 }
 
-function enterTreeView() {
+function enterTreeView(nodeId) {
   if (treeTransitioning) return;
+  activeTreeId = nodeId;
   treeViewActive = true;
   treeTransitioning = true;
   selectedNode = null;
@@ -731,9 +774,10 @@ function exitTreeView() {
 
   onAllDone(t, function() {
     treeTransitioning = false;
-    // Return focus to depreciation node for keyboard users
-    const depRect = depNodeG.select("rect").node();
-    if (depRect) depRect.focus();
+    // Return focus to the drillable node for keyboard users
+    const focusNode = nodes.filter(n => n.id === activeTreeId).select("rect").node();
+    if (focusNode) focusNode.focus();
+    activeTreeId = null;
   });
 }
 
@@ -747,16 +791,35 @@ const ABBREV = {
   "Mining & Petroleum": "Mining/Petro", "Manufacturing": "Mfg.",
   "Equipment & Other": "Equip.", "Nonprofit Institutions": "Nonprofit",
   "Improvements & Commissions": "Improve.", "Dormitories & Other": "Dorms etc.",
-  "Construction & Maintenance": "Const/Maint"
+  "Construction & Maintenance": "Const/Maint",
+  "Household Operations": "Household Ops", "Household Supplies": "Supplies",
+  "Maintenance & Repair": "Maint/Repair", "Homeowners Insurance": "Insurance",
+  "Contractor Services": "Contractors", "Cleaning Services": "Cleaning",
+  "Cleaning Products": "Cleaning", "Paper & Disposables": "Paper/Disp.",
+  "Plumbing & Electrical": "Plumb/Elec", "Roofing & Exteriors": "Roofing",
+  "Painting & Finishing": "Painting", "Building Materials": "Materials",
+  "Cooking & Water Heating": "Cook/Heat", "Water, Sewer & Trash": "Water/Sewer",
+  "Fuel Oil & Other Energy": "Fuel/Other", "Fuel Oil & Propane": "Fuel/Propane",
+  "Bundled Community Utilities": "Community", "Septic & Well Services": "Septic/Well",
+  "Other Utility Services": "Other Util.", "Subsidized & Public Housing": "Subsidized",
+  "Townhomes & Duplexes": "Town/Duplex", "Large Complexes (50+ units)": "Large (50+)",
+  "Small Buildings (2–4 units)": "Small (2–4)", "Mid-Size (5–49 units)": "Mid (5–49)",
+  "Single-Family Rentals": "SF Rentals", "Single-Family Homes": "Single-Family",
+  "Mobile & Manufactured": "Mobile", "Appliances & Lighting": "Appl/Light",
+  "Heating & Cooling": "Heat/Cool", "Detached Houses": "Detached",
+  "Security Systems": "Security", "Lawn Care Services": "Lawn Care",
+  "Plants & Supplies": "Plants", "Other Operations": "Other Ops",
+  "Other Owner Costs": "Other Costs"
 };
 
 function renderTree() {
+  const cfg = TREE_CONFIGS[activeTreeId];
   const tmWidth = dims.width;
   const tmHeight = dims.height - 30;
   const titleOffset = 30;
 
   // Build hierarchy
-  const root = d3.hierarchy(DEPRECIATION_TREE)
+  const root = d3.hierarchy(cfg.tree)
     .sum(d => d.children ? 0 : d.value)
     .sort((a, b) => b.value - a.value);
 
@@ -775,26 +838,8 @@ function renderTree() {
     .round(true)
     (root);
 
-  // HSL depth-based color: Private=orange family, Government=blue family
-  function cellColor(d) {
-    let ancestor = d;
-    while (ancestor.depth > 1) ancestor = ancestor.parent;
-    const isPrivate = ancestor.data.name === "Private";
-    const hueBase = isPrivate ? 25 : 210;
-    const hueRange = isPrivate ? 25 : 30;
-
-    const depth = Math.min(d.depth, 5);
-    const sat = 80 - (depth - 1) * 10;
-    const lit = 38 + (depth - 1) * 9;
-
-    const siblings = d.parent ? d.parent.children : [d];
-    const idx = siblings.indexOf(d);
-    const hueShift = siblings.length > 1
-      ? (idx / (siblings.length - 1) - 0.5) * hueRange
-      : 0;
-
-    return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
-  }
+  // Color function from config
+  const cellColor = cfg.colorFn;
 
   function useDarkText(d) {
     const depth = Math.min(d.depth, 5);
@@ -806,7 +851,7 @@ function renderTree() {
   treeGroup = svg.append("g")
     .attr("class", "tree-view")
     .attr("role", "img")
-    .attr("aria-label", "Treemap showing breakdown of $5 trillion in US depreciation by sector and asset type, 2024")
+    .attr("aria-label", cfg.ariaLabel)
     .style("opacity", 0);
 
   // Title
@@ -814,13 +859,13 @@ function renderTree() {
     .attr("class", "treemap-title")
     .attr("x", 0)
     .attr("y", -6)
-    .text("Depreciation (CCA): Where $5 Trillion in Capital Wears Out");
+    .text(cfg.title);
 
   treeGroup.append("text")
     .attr("class", "treemap-subtitle")
     .attr("x", 0)
     .attr("y", 12)
-    .text("Consumption of fixed capital by sector and asset type, 2024 (billions USD)");
+    .text(cfg.subtitle);
 
   const tmContent = treeGroup.append("g")
     .attr("transform", `translate(0, ${titleOffset})`);
@@ -947,7 +992,7 @@ function renderTree() {
       const pct = (d.value / root.value * 100).toFixed(1);
       const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${cellColor(d)}"></span>${d.data.name}</div>` +
         `<div class="tooltip-value">${formatValue(d.value)}</div>` +
-        `<div class="tooltip-detail">${pct}% of total depreciation</div>` +
+        `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>` +
         `<div class="tooltip-detail" style="margin-top:4px;color:var(--color-text-tertiary)">${path}</div>`;
       tooltip.html(html);
       showTooltip(event);
