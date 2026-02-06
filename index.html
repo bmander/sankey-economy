@@ -265,10 +265,54 @@ function hideTooltip() {
   tooltip.classed("is-visible", false);
 }
 
+const NODE_DESCRIPTIONS = {
+  0:  "The total value of all goods and services produced in the U.S. in a year — the broadest measure of the economy's size.",
+  1:  "Wages, salaries, and benefits paid to workers — the largest slice of national income.",
+  2:  "What's left of business revenue after paying workers, suppliers, and other costs.",
+  3:  "Income earned by self-employed people, freelancers, and small-business owners.",
+  4:  "Income from owning property or land, including imputed rent for homeowners.",
+  5:  "Interest earned by households and businesses on savings, bonds, and loans, minus interest paid.",
+  6:  "Sales taxes, property taxes, customs duties, and other taxes baked into the price of goods.",
+  7:  "The cost of wear and tear on buildings, equipment, and software — money set aside to replace aging capital.",
+  8:  "Federal and state taxes on individual income from wages, investments, and other sources.",
+  9:  "Social Security and Medicare taxes withheld from paychecks, split between workers and employers.",
+  10: "Federal tax on corporate profits, after deductions and credits.",
+  11: "Total federal revenue from taxes, borrowing, and other sources, funding all federal programs.",
+  12: "Revenue from property taxes, sales taxes, and state income taxes, funding local services.",
+  13: "Monthly payments to retirees and disabled workers, funded by payroll taxes.",
+  14: "Federal health insurance for Americans 65 and older, covering hospital and doctor visits.",
+  15: "Joint federal-state health insurance for low-income families, children, and the elderly.",
+  16: "Spending on the military, including personnel, weapons systems, and operations.",
+  17: "Interest the federal government pays on the national debt — a fast-growing budget item.",
+  18: "Veterans' benefits, food assistance (SNAP), unemployment insurance, and other safety-net programs.",
+  36: "Federal spending on science, transportation, education, housing, and other civilian agencies.",
+  19: "The money households actually have to spend or save after taxes — their take-home income plus government benefits.",
+  20: "Rent, mortgage payments, electricity, water, gas, and home maintenance.",
+  21: "Out-of-pocket medical costs, insurance premiums, and other health-related spending by households.",
+  22: "Groceries, restaurant meals, and beverages — both at home and eating out.",
+  23: "Cars, gasoline, public transit, rideshares, and vehicle maintenance.",
+  24: "Streaming services, sports, travel, hobbies, and other leisure spending.",
+  25: "Banking fees, insurance premiums, brokerage services, and financial planning.",
+  26: "Clothing, personal care, education, communication services, and everything else households buy.",
+  27: "The portion of take-home pay that households don't spend — money flowing into bank accounts, retirement funds, and investments.",
+  28: "State and local spending on public K-12 schools, community colleges, and state universities.",
+  29: "State-funded Medicaid, welfare programs, public hospitals, and community health services.",
+  30: "Roads, bridges, water systems, police, fire departments, parks, and general government operations.",
+  31: "The gap between what the federal government spends and what it collects in taxes — covered by issuing Treasury bonds.",
+  32: "The share of corporate profits that companies keep to reinvest in the business rather than pay out as dividends.",
+  33: "Corporate profits paid out to shareholders — a key source of household investment income.",
+  34: "Social Security checks, Medicare benefits, Medicaid, and other government payments that flow to households.",
+  35: "Estate taxes, excise taxes, Federal Reserve earnings, and other miscellaneous federal income."
+};
+
 function setNodeTooltip(d) {
   const color = CATEGORY_COLORS[d.category];
   let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.name}</div>`;
   html += `<div class="tooltip-value">${formatValue(d.value)}</div>`;
+  const desc = NODE_DESCRIPTIONS[d.id];
+  if (desc) {
+    html += `<div class="tooltip-detail" style="margin-bottom:6px;color:var(--color-text-secondary)">${desc}</div>`;
+  }
 
   if (d.targetLinks.length > 0) {
     html += `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
