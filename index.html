@@ -303,7 +303,8 @@ const sankey = d3.sankey()
   .nodeId(d => d.id)
   .nodeWidth(18)
   .nodePadding(10)
-  .nodeAlign(d3.sankeyJustify)
+  .nodeAlign(d3.sankeyLeft)
+  .iterations(32)
   .extent([[0, 0], [dims.width, dims.height]]);
 
 const graph = sankey({
@@ -356,22 +357,27 @@ nodes.append("rect")
   .attr("rx", 2)
   .attr("ry", 2);
 
+// Label side: source-only nodes get left labels, everything else right
+function labelOnLeft(d) {
+  return d.targetLinks.length === 0; // source nodes only
+}
+
 // Node name labels
 nodes.append("text")
-  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("x", d => labelOnLeft(d) ? -6 : sankey.nodeWidth() + 6)
   .attr("y", d => (d.y1 - d.y0) / 2)
   .attr("dy", "0.35em")
-  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .attr("text-anchor", d => labelOnLeft(d) ? "end" : "start")
   .attr("class", "node-name")
   .text(d => d.name);
 
 // Node value labels below names (only for nodes tall enough)
 nodes.filter(d => (d.y1 - d.y0) > 16)
   .append("text")
-  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("x", d => labelOnLeft(d) ? -6 : sankey.nodeWidth() + 6)
   .attr("y", d => (d.y1 - d.y0) / 2 + 13)
   .attr("dy", "0.35em")
-  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .attr("text-anchor", d => labelOnLeft(d) ? "end" : "start")
   .attr("class", "node-value")
   .style("font-size", "9.5px")
   .style("fill", d => CATEGORY_COLORS[d.category])
@@ -573,10 +579,10 @@ depNodeG.select("rect")
   .attr("aria-label", "Depreciation (CCA) — click to explore breakdown");
 depNodeG.append("text")
   .attr("class", "depreciation-hint")
-  .attr("x", d => d.x0 < dims.width / 2 ? -6 : sankey.nodeWidth() + 6)
+  .attr("x", d => labelOnLeft(d) ? -6 : sankey.nodeWidth() + 6)
   .attr("y", d => (d.y1 - d.y0) / 2 + 26)
   .attr("dy", "0.35em")
-  .attr("text-anchor", d => d.x0 < dims.width / 2 ? "end" : "start")
+  .attr("text-anchor", d => labelOnLeft(d) ? "end" : "start")
   .text("Click to explore \u25B6");
 
 // Escape key exits tree view
