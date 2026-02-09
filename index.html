@@ -621,20 +621,19 @@ function exitTreeView() {
 
 // DATA: ABBREV — see data/treemaps.js
 
-function renderTree() {
-  const cfg = TREE_CONFIGS[activeTreeId];
-  const tmWidth = dims.width;
-  const tmHeight = dims.height - 30;
-  const titleOffset = 30;
+function useDarkText(d) {
+  const depth = Math.min(d.depth, 5);
+  const lit = 38 + (depth - 1) * 9;
+  return lit > 58;
+}
 
-  // Build hierarchy
+function buildTreemapLayout(cfg, width, height) {
   const root = d3.hierarchy(cfg.tree)
     .sum(d => d.children ? 0 : d.value)
     .sort((a, b) => b.value - a.value);
 
-  // Treemap layout with depth-adaptive padding
   d3.treemap()
-    .size([tmWidth, tmHeight])
+    .size([width, height])
     .paddingTop(d => {
       if (d.depth === 0) return 0;
       if (d.depth === 1) return 18;
@@ -647,40 +646,10 @@ function renderTree() {
     .round(true)
     (root);
 
-  // Color function from config
-  const cellColor = cfg.colorFn;
+  return root;
+}
 
-  function useDarkText(d) {
-    const depth = Math.min(d.depth, 5);
-    const lit = 38 + (depth - 1) * 9;
-    return lit > 58;
-  }
-
-  // Create group for treemap
-  treeGroup = svg.append("g")
-    .attr("class", "tree-view")
-    .attr("role", "img")
-    .attr("aria-label", cfg.ariaLabel)
-    .style("opacity", 0);
-
-  // Title
-  treeGroup.append("text")
-    .attr("class", "treemap-title")
-    .attr("x", 0)
-    .attr("y", -6)
-    .text(cfg.title);
-
-  treeGroup.append("text")
-    .attr("class", "treemap-subtitle")
-    .attr("x", 0)
-    .attr("y", 12)
-    .text(cfg.subtitle);
-
-  const tmContent = treeGroup.append("g")
-    .attr("transform", `translate(0, ${titleOffset})`);
-
-  // Draw group labels (depth 1-3, non-leaf nodes)
-  const groups = root.descendants().filter(d => d.depth > 0 && d.depth <= 3 && d.children);
+function renderTreeLabels(tmContent, groups) {
   tmContent.selectAll(".treemap-group-label")
     .data(groups)
     .join("text")
@@ -694,10 +663,9 @@ function renderTree() {
         if (label.length * 6 > cellWidth - 8) return d.data.name;
         return label;
       });
+}
 
-  // Draw leaf cells
-  const leaves = root.leaves();
-
+function renderTreeCells(tmContent, leaves, cellColor) {
   const cells = tmContent.selectAll(".treemap-cell")
     .data(leaves)
     .join("g")
@@ -766,7 +734,7 @@ function renderTree() {
     }
 
     if (h >= 48 && w >= 80) {
-      const pct = (d.value / root.value * 100).toFixed(1);
+      const pct = (d.value / d.ancestors().at(-1).value * 100).toFixed(1);
       g.append("text")
         .attr("class", "treemap-cell-pct")
         .attr("x", 5).attr("y", 39)
@@ -775,6 +743,10 @@ function renderTree() {
     }
   });
 
+  return cells;
+}
+
+function attachTreeInteractions(cells, root, cellColor, cfg) {
   // Prevent cell clicks from bubbling to body (which would exit tree view)
   cells.on("click", function(event) {
     event.stopPropagation();
@@ -816,6 +788,44 @@ function renderTree() {
         .style("stroke", null).style("stroke-width", null);
       hideTooltip();
     });
+}
+
+function renderTree() {
+  const cfg = TREE_CONFIGS[activeTreeId];
+  const tmWidth = dims.width;
+  const tmHeight = dims.height - 30;
+  const titleOffset = 30;
+
+  const root = buildTreemapLayout(cfg, tmWidth, tmHeight);
+  const cellColor = cfg.colorFn;
+
+  // Create group for treemap (assigns global treeGroup for exitTreeView)
+  treeGroup = svg.append("g")
+    .attr("class", "tree-view")
+    .attr("role", "img")
+    .attr("aria-label", cfg.ariaLabel)
+    .style("opacity", 0);
+
+  treeGroup.append("text")
+    .attr("class", "treemap-title")
+    .attr("x", 0)
+    .attr("y", -6)
+    .text(cfg.title);
+
+  treeGroup.append("text")
+    .attr("class", "treemap-subtitle")
+    .attr("x", 0)
+    .attr("y", 12)
+    .text(cfg.subtitle);
+
+  const tmContent = treeGroup.append("g")
+    .attr("transform", `translate(0, ${titleOffset})`);
+
+  const groups = root.descendants().filter(d => d.depth > 0 && d.depth <= 3 && d.children);
+  renderTreeLabels(tmContent, groups);
+
+  const cells = renderTreeCells(tmContent, root.leaves(), cellColor);
+  attachTreeInteractions(cells, root, cellColor, cfg);
 
   // Fade in
   treeGroup
