@@ -105,17 +105,26 @@ function formatValueBillions(v) {
 // CHART DIMENSIONS
 // ============================================================
 const chartEl = document.getElementById("chart");
-const margin = { top: 24, right: 220, bottom: 24, left: 200 };
+function getMargins() {
+  const w = window.innerWidth;
+  if (w <= 480) return { top: 16, right: 120, bottom: 16, left: 110 };
+  if (w <= 768) return { top: 20, right: 160, bottom: 20, left: 150 };
+  return { top: 24, right: 220, bottom: 24, left: 200 };
+}
+let margin = getMargins();
 
 function getDimensions() {
   const w = Math.min(1200, chartEl.clientWidth || 1000);
+  const isLandscapeMobile = window.innerHeight < 500 && window.innerWidth > window.innerHeight;
+  const minH = isLandscapeMobile ? 350 : 700;
+  const maxH = isLandscapeMobile ? 500 : 900;
   return {
     width: w - margin.left - margin.right,
-    height: Math.max(700, Math.min(900, window.innerHeight * 0.7))
+    height: Math.max(minH, Math.min(maxH, window.innerHeight * 0.7))
   };
 }
 
-const dims = getDimensions();
+let dims = getDimensions();
 
 // ============================================================
 // SVG
@@ -145,7 +154,7 @@ function positionTooltip(event) {
   let x = event.pageX + pad;
   let y = event.pageY - pad;
   // Keep tooltip on screen
-  const ttWidth = 280;
+  const ttWidth = parseFloat(getComputedStyle(tooltip.node()).maxWidth) || 280;
   if (x + ttWidth > window.innerWidth) {
     x = event.pageX - ttWidth - pad;
   }
@@ -462,9 +471,19 @@ document.querySelector(".sankey-container").prepend(summary);
 // ============================================================
 // RESPONSIVE
 // ============================================================
+let resizeTimer;
 window.addEventListener("resize", () => {
-  const d = getDimensions();
-  svgEl.attr("viewBox", `0 0 ${d.width + margin.left + margin.right} ${d.height + margin.top + margin.bottom}`);
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    margin = getMargins();
+    dims = getDimensions();
+    svgEl.attr("viewBox", `0 0 ${dims.width + margin.left + margin.right} ${dims.height + margin.top + margin.bottom}`);
+    if (state.treeViewActive && !state.treeTransitioning && state.treeGroup) {
+      state.treeGroup.remove();
+      state.treeGroup = null;
+      renderTree();
+    }
+  }, 150);
 });
 
 // ============================================================
