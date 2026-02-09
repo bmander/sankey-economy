@@ -61,6 +61,9 @@ Additionally, the Sankey links carry category color at partial opacity over a wh
 | `--color-text-primary`   | `#1a1a1a` | Headings, key text |
 | `--color-text-secondary` | `#555550` | Body copy          |
 | `--color-text-tertiary`  | `#8a8a82` | Captions, labels   |
+| `--color-text-inverse`       | `#fafaf8`                | Light text on dark backgrounds |
+| `--color-text-inverse-soft`  | `rgba(250,250,248,0.85)` | Light text, slightly muted |
+| `--color-text-inverse-muted` | `rgba(250,250,248,0.7)`  | Light text, subdued |
 
 The warm-gray tint (`#fafaf8` instead of pure white) reduces glare and gives the page a print-like feel.
 
