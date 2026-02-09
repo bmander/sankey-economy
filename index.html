@@ -162,41 +162,51 @@ function hideTooltip() {
   tooltip.classed("is-visible", false);
 }
 
+function buildTooltipHtml({ title, color, value, details = [] }) {
+  let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${title}</div>`;
+  html += `<div class="tooltip-value">${value}</div>`;
+  html += details.join("");
+  return html;
+}
+
 // DATA: NODE_DESCRIPTIONS — see data/sankey.js
 
 function setNodeTooltip(d) {
   const color = CATEGORY_COLORS[d.category];
-  let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.name}</div>`;
-  html += `<div class="tooltip-value">${formatValue(d.value)}</div>`;
+  const details = [];
   const desc = NODE_DESCRIPTIONS[d.id];
   if (desc) {
-    html += `<div class="tooltip-description">${desc}</div>`;
+    details.push(`<div class="tooltip-description">${desc}</div>`);
   }
 
   if (d.targetLinks.length > 0) {
-    html += `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
+    let inflows = `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
     d.targetLinks
       .sort((a, b) => b.value - a.value)
       .forEach(l => {
-        html += `<div class="tooltip-flow-label"><span class="arrow">&larr;</span> ${l.source.name}: ${formatValueBillions(l.value)}</div>`;
+        inflows += `<div class="tooltip-flow-label"><span class="arrow">&larr;</span> ${l.source.name}: ${formatValueBillions(l.value)}</div>`;
       });
+    details.push(inflows);
   }
   if (d.sourceLinks.length > 0) {
-    html += `<div class="tooltip-detail tooltip-detail--section"><strong>Outflows:</strong></div>`;
+    let outflows = `<div class="tooltip-detail tooltip-detail--section"><strong>Outflows:</strong></div>`;
     d.sourceLinks
       .sort((a, b) => b.value - a.value)
       .forEach(l => {
-        html += `<div class="tooltip-flow-label"><span class="arrow">&rarr;</span> ${l.target.name}: ${formatValueBillions(l.value)}</div>`;
+        outflows += `<div class="tooltip-flow-label"><span class="arrow">&rarr;</span> ${l.target.name}: ${formatValueBillions(l.value)}</div>`;
       });
+    details.push(outflows);
   }
-  tooltip.html(html);
+  tooltip.html(buildTooltipHtml({ title: d.name, color, value: formatValue(d.value), details }));
 }
 
 function setLinkTooltip(d) {
   const color = CATEGORY_COLORS[d.source.category];
-  const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.source.name} <span class="arrow">&rarr;</span> ${d.target.name}</div>` +
-    `<div class="tooltip-value">${formatValueBillions(d.value)}</div>`;
-  tooltip.html(html);
+  tooltip.html(buildTooltipHtml({
+    title: `${d.source.name} <span class="arrow">&rarr;</span> ${d.target.name}`,
+    color,
+    value: formatValueBillions(d.value)
+  }));
 }
 
 // ============================================================
@@ -229,7 +239,7 @@ const links = linkGroup.selectAll(".sankey-link")
     .on("mouseover", function(event, d) {
       setLinkTooltip(d);
       showTooltip(event);
-      if (!selectedNode) {
+      if (!state.selectedNode) {
         d3.select(this).classed("is-highlighted", true);
       }
     })
@@ -238,7 +248,7 @@ const links = linkGroup.selectAll(".sankey-link")
     })
     .on("mouseout", function() {
       hideTooltip();
-      if (!selectedNode) {
+      if (!state.selectedNode) {
         d3.select(this).classed("is-highlighted", false);
       }
     });
@@ -291,7 +301,7 @@ nodes
   .on("mouseover", function(event, d) {
     setNodeTooltip(d);
     showTooltip(event);
-    if (!selectedNode) {
+    if (!state.selectedNode) {
       highlight(d);
     }
   })
@@ -300,7 +310,7 @@ nodes
   })
   .on("mouseout", function() {
     hideTooltip();
-    if (!selectedNode) {
+    if (!state.selectedNode) {
       clearHighlight();
     }
   });
@@ -308,42 +318,46 @@ nodes
 // ============================================================
 // CLICK-TO-HIGHLIGHT
 // ============================================================
-let selectedNode = null;
-let treeViewActive = false;
-let treeTransitioning = false;
+const state = {
+  selectedNode: null,
+  treeViewActive: false,
+  treeTransitioning: false,
+  treeGroup: null,
+  activeTreeId: null,
+};
 const container = d3.select("#sankey-container");
 
 nodes.on("click", function(event, d) {
   event.stopPropagation();
 
   // Block all clicks during transitions
-  if (treeTransitioning) return;
+  if (state.treeTransitioning) return;
 
   // If a drillable node is clicked, enter tree drill-down
-  if (TREE_CONFIGS[d.id] && !treeViewActive) {
+  if (TREE_CONFIGS[d.id] && !state.treeViewActive) {
     enterTreeView(d.id);
     return;
   }
 
-  if (treeViewActive) return;
+  if (state.treeViewActive) return;
 
-  if (selectedNode === d) {
-    selectedNode = null;
+  if (state.selectedNode === d) {
+    state.selectedNode = null;
     clearHighlight();
     return;
   }
 
-  selectedNode = d;
+  state.selectedNode = d;
   highlight(d);
 });
 
 d3.select("body").on("click", function() {
-  if (treeViewActive && !treeTransitioning) {
+  if (state.treeViewActive && !state.treeTransitioning) {
     exitTreeView();
     return;
   }
-  if (selectedNode) {
-    selectedNode = null;
+  if (state.selectedNode) {
+    state.selectedNode = null;
     clearHighlight();
     document.querySelectorAll(".legend-item").forEach(el => {
       el.classList.remove("is-active");
@@ -405,13 +419,13 @@ function buildLegend() {
     });
 
     item.addEventListener("click", () => {
-      if (treeViewActive) return;
+      if (state.treeViewActive) return;
       const alreadyActive = item.classList.contains("is-active");
       document.querySelectorAll(".legend-item").forEach(el => {
         el.classList.remove("is-active");
         el.setAttribute("aria-pressed", "false");
       });
-      selectedNode = null;
+      state.selectedNode = null;
 
       if (alreadyActive) {
         clearHighlight();
@@ -459,8 +473,6 @@ window.addEventListener("resize", () => {
 
 // DATA: *_TREE constants, makeTreeColorFn, TREE_CONFIGS — see data/treemaps.js
 
-let treeGroup = null;
-let activeTreeId = null;
 
 // Add back button to container
 const backBtn = document.createElement("button");
@@ -484,8 +496,8 @@ drillableNodes.select("rect")
   .on("keydown", function(event, d) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      if (treeTransitioning) return;
-      if (TREE_CONFIGS[d.id] && !treeViewActive) {
+      if (state.treeTransitioning) return;
+      if (TREE_CONFIGS[d.id] && !state.treeViewActive) {
         enterTreeView(d.id);
       }
     }
@@ -500,7 +512,7 @@ drillableNodes.append("text")
 
 // Escape key exits tree view
 document.addEventListener("keydown", function(event) {
-  if (event.key === "Escape" && treeViewActive && !treeTransitioning) {
+  if (event.key === "Escape" && state.treeViewActive && !state.treeTransitioning) {
     exitTreeView();
   }
 });
@@ -526,7 +538,7 @@ function onAllDone(selection, callback) {
 // Shared helper: interrupt in-flight transitions, clear UI state,
 // then fade Sankey elements to the target opacity.
 function transitionSankeyVisibility(visible, callback) {
-  treeTransitioning = true;
+  state.treeTransitioning = true;
   hideTooltip();
   clearHighlight();
   document.querySelectorAll(".legend-item").forEach(el => {
@@ -536,21 +548,21 @@ function transitionSankeyVisibility(visible, callback) {
 
   // Interrupt any in-flight transitions
   svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
-  if (treeGroup) {
-    treeGroup.interrupt();
+  if (state.treeGroup) {
+    state.treeGroup.interrupt();
     if (!visible) {
       // Entering tree view — remove tree group immediately so it can be rebuilt
-      treeGroup.remove();
+      state.treeGroup.remove();
     } else {
       // Exiting tree view — fade out then remove
-      treeGroup
+      state.treeGroup
         .transition()
         .duration(DUR_TREE_OUT)
         .style("opacity", 0)
         .on("end", function() { d3.select(this).remove(); })
         .on("interrupt", function() { d3.select(this).remove(); });
     }
-    treeGroup = null;
+    state.treeGroup = null;
   }
 
   const sankeyEls = svg.selectAll(".sankey-links, .sankey-nodes");
@@ -567,16 +579,16 @@ function transitionSankeyVisibility(visible, callback) {
 
   onAllDone(t, function() {
     if (!visible) sankeyEls.style("display", "none");
-    treeTransitioning = false;
+    state.treeTransitioning = false;
     callback();
   });
 }
 
 function enterTreeView(nodeId) {
-  if (treeTransitioning) return;
-  activeTreeId = nodeId;
-  treeViewActive = true;
-  selectedNode = null;
+  if (state.treeTransitioning) return;
+  state.activeTreeId = nodeId;
+  state.treeViewActive = true;
+  state.selectedNode = null;
 
   transitionSankeyVisibility(false, function() {
     renderTree();
@@ -588,17 +600,17 @@ function enterTreeView(nodeId) {
 }
 
 function exitTreeView() {
-  if (!treeViewActive || treeTransitioning) return;
-  treeViewActive = false;
+  if (!state.treeViewActive || state.treeTransitioning) return;
+  state.treeViewActive = false;
 
   // Hide back button
   backBtn.classList.remove("is-visible");
 
   transitionSankeyVisibility(true, function() {
     // Return focus to the drillable node for keyboard users
-    const focusNode = nodes.filter(n => n.id === activeTreeId).select("rect").node();
+    const focusNode = nodes.filter(n => n.id === state.activeTreeId).select("rect").node();
     if (focusNode) focusNode.focus();
-    activeTreeId = null;
+    state.activeTreeId = null;
   });
 }
 
@@ -748,11 +760,11 @@ function attachTreeInteractions(cells, root, cellColor, cfg) {
         path = `${ancestors[0]} \u203A \u2026 \u203A ${ancestors.slice(-2).join(" \u203A ")}`;
       }
       const pct = (d.value / root.value * 100).toFixed(1);
-      const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${cellColor(d)}"></span>${d.data.name}</div>` +
-        `<div class="tooltip-value">${formatValue(d.value)}</div>` +
-        `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>` +
-        `<div class="tooltip-detail tooltip-detail--section">${path}</div>`;
-      tooltip.html(html);
+      const details = [
+        `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>`,
+        `<div class="tooltip-detail tooltip-detail--section">${path}</div>`
+      ];
+      tooltip.html(buildTooltipHtml({ title: d.data.name, color: cellColor(d), value: formatValue(d.value), details }));
       showTooltip(event);
     })
     .on("mousemove", function(event) {
@@ -768,7 +780,7 @@ function attachTreeInteractions(cells, root, cellColor, cfg) {
 }
 
 function renderTree() {
-  const cfg = TREE_CONFIGS[activeTreeId];
+  const cfg = TREE_CONFIGS[state.activeTreeId];
   const tmWidth = dims.width;
   const tmHeight = dims.height - 30;
   const titleOffset = 30;
@@ -776,26 +788,26 @@ function renderTree() {
   const root = buildTreemapLayout(cfg, tmWidth, tmHeight);
   const cellColor = cfg.colorFn;
 
-  // Create group for treemap (assigns global treeGroup for exitTreeView)
-  treeGroup = svg.append("g")
+  // Create group for treemap (assigns state.treeGroup for exitTreeView)
+  state.treeGroup = svg.append("g")
     .attr("class", "tree-view")
     .attr("role", "img")
     .attr("aria-label", cfg.ariaLabel)
     .style("opacity", 0);
 
-  treeGroup.append("text")
+  state.treeGroup.append("text")
     .attr("class", "treemap-title")
     .attr("x", 0)
     .attr("y", -6)
     .text(cfg.title);
 
-  treeGroup.append("text")
+  state.treeGroup.append("text")
     .attr("class", "treemap-subtitle")
     .attr("x", 0)
     .attr("y", 12)
     .text(cfg.subtitle);
 
-  const tmContent = treeGroup.append("g")
+  const tmContent = state.treeGroup.append("g")
     .attr("transform", `translate(0, ${titleOffset})`);
 
   const groups = root.descendants().filter(d => d.depth > 0 && d.depth <= 3 && d.children);
@@ -805,7 +817,7 @@ function renderTree() {
   attachTreeInteractions(cells, root, cellColor, cfg);
 
   // Fade in
-  treeGroup
+  state.treeGroup
     .transition()
     .duration(DUR_FADE_IN)
     .style("opacity", 1);
