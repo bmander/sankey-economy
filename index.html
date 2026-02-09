@@ -162,41 +162,51 @@ function hideTooltip() {
   tooltip.classed("is-visible", false);
 }
 
+function buildTooltipHtml({ title, color, value, details = [] }) {
+  let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${title}</div>`;
+  html += `<div class="tooltip-value">${value}</div>`;
+  html += details.join("");
+  return html;
+}
+
 // DATA: NODE_DESCRIPTIONS — see data/sankey.js
 
 function setNodeTooltip(d) {
   const color = CATEGORY_COLORS[d.category];
-  let html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.name}</div>`;
-  html += `<div class="tooltip-value">${formatValue(d.value)}</div>`;
+  const details = [];
   const desc = NODE_DESCRIPTIONS[d.id];
   if (desc) {
-    html += `<div class="tooltip-description">${desc}</div>`;
+    details.push(`<div class="tooltip-description">${desc}</div>`);
   }
 
   if (d.targetLinks.length > 0) {
-    html += `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
+    let inflows = `<div class="tooltip-detail"><strong>Inflows:</strong></div>`;
     d.targetLinks
       .sort((a, b) => b.value - a.value)
       .forEach(l => {
-        html += `<div class="tooltip-flow-label"><span class="arrow">&larr;</span> ${l.source.name}: ${formatValueBillions(l.value)}</div>`;
+        inflows += `<div class="tooltip-flow-label"><span class="arrow">&larr;</span> ${l.source.name}: ${formatValueBillions(l.value)}</div>`;
       });
+    details.push(inflows);
   }
   if (d.sourceLinks.length > 0) {
-    html += `<div class="tooltip-detail tooltip-detail--section"><strong>Outflows:</strong></div>`;
+    let outflows = `<div class="tooltip-detail tooltip-detail--section"><strong>Outflows:</strong></div>`;
     d.sourceLinks
       .sort((a, b) => b.value - a.value)
       .forEach(l => {
-        html += `<div class="tooltip-flow-label"><span class="arrow">&rarr;</span> ${l.target.name}: ${formatValueBillions(l.value)}</div>`;
+        outflows += `<div class="tooltip-flow-label"><span class="arrow">&rarr;</span> ${l.target.name}: ${formatValueBillions(l.value)}</div>`;
       });
+    details.push(outflows);
   }
-  tooltip.html(html);
+  tooltip.html(buildTooltipHtml({ title: d.name, color, value: formatValue(d.value), details }));
 }
 
 function setLinkTooltip(d) {
   const color = CATEGORY_COLORS[d.source.category];
-  const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${color}"></span>${d.source.name} <span class="arrow">&rarr;</span> ${d.target.name}</div>` +
-    `<div class="tooltip-value">${formatValueBillions(d.value)}</div>`;
-  tooltip.html(html);
+  tooltip.html(buildTooltipHtml({
+    title: `${d.source.name} <span class="arrow">&rarr;</span> ${d.target.name}`,
+    color,
+    value: formatValueBillions(d.value)
+  }));
 }
 
 // ============================================================
@@ -767,11 +777,11 @@ function attachTreeInteractions(cells, root, cellColor, cfg) {
         path = `${ancestors[0]} \u203A \u2026 \u203A ${ancestors.slice(-2).join(" \u203A ")}`;
       }
       const pct = (d.value / root.value * 100).toFixed(1);
-      const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${cellColor(d)}"></span>${d.data.name}</div>` +
-        `<div class="tooltip-value">${formatValue(d.value)}</div>` +
-        `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>` +
-        `<div class="tooltip-detail tooltip-detail--section">${path}</div>`;
-      tooltip.html(html);
+      const details = [
+        `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>`,
+        `<div class="tooltip-detail tooltip-detail--section">${path}</div>`
+      ];
+      tooltip.html(buildTooltipHtml({ title: d.data.name, color: cellColor(d), value: formatValue(d.value), details }));
       showTooltip(event);
     })
     .on("mousemove", function(event) {
