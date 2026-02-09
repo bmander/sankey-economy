@@ -166,7 +166,7 @@ function setNodeTooltip(d) {
   html += `<div class="tooltip-value">${formatValue(d.value)}</div>`;
   const desc = NODE_DESCRIPTIONS[d.id];
   if (desc) {
-    html += `<div class="tooltip-detail" style="margin-bottom:6px;color:var(--color-text-secondary)">${desc}</div>`;
+    html += `<div class="tooltip-description">${desc}</div>`;
   }
 
   if (d.targetLinks.length > 0) {
@@ -178,7 +178,7 @@ function setNodeTooltip(d) {
       });
   }
   if (d.sourceLinks.length > 0) {
-    html += `<div class="tooltip-detail" style="margin-top:4px"><strong>Outflows:</strong></div>`;
+    html += `<div class="tooltip-detail tooltip-detail--section"><strong>Outflows:</strong></div>`;
     d.sourceLinks
       .sort((a, b) => b.value - a.value)
       .forEach(l => {
@@ -278,10 +278,6 @@ nodes.filter(d => (d.y1 - d.y0) > 16)
   .attr("dy", "0.35em")
   .attr("text-anchor", d => labelOnLeft(d) ? "end" : "start")
   .attr("class", "node-value")
-  .style("font-size", "9.5px")
-  .style("fill", d => CATEGORY_COLORS[d.category])
-  .style("font-weight", "600")
-  .style("opacity", 0.8)
   .text(d => formatValue(d.value));
 
 // ============================================================
@@ -784,13 +780,14 @@ function renderTree() {
   cells
     .on("mouseover", function(event, d) {
       // Dim all cells, highlight siblings
-      cells.select("rect").style("opacity", 0.6);
+      cells.classed("treemap-cell--dim", true);
       const siblingLeaves = d.parent ? d.parent.leaves() : [d];
       cells.filter(c => siblingLeaves.includes(c))
-        .select("rect").style("opacity", 1).style("filter", "brightness(1.08)");
-      d3.select(this).select("rect")
-        .style("opacity", 1).style("filter", "brightness(1.15)")
-        .style("stroke", "#fff").style("stroke-width", "2px");
+        .classed("treemap-cell--dim", false)
+        .classed("treemap-cell--active", true);
+      d3.select(this)
+        .classed("treemap-cell--active", false)
+        .classed("treemap-cell--focus", true);
 
       // Tooltip with breadcrumb path
       const ancestors = d.ancestors().reverse().slice(1).map(a => a.data.name);
@@ -802,7 +799,7 @@ function renderTree() {
       const html = `<div class="tooltip-title"><span class="tooltip-swatch" style="background:${cellColor(d)}"></span>${d.data.name}</div>` +
         `<div class="tooltip-value">${formatValue(d.value)}</div>` +
         `<div class="tooltip-detail">${pct}% of ${cfg.pctLabel}</div>` +
-        `<div class="tooltip-detail" style="margin-top:4px;color:var(--color-text-tertiary)">${path}</div>`;
+        `<div class="tooltip-detail tooltip-detail--section">${path}</div>`;
       tooltip.html(html);
       showTooltip(event);
     })
@@ -811,9 +808,9 @@ function renderTree() {
     })
     .on("mouseout", function() {
       // Reset all cells
-      cells.select("rect")
-        .style("opacity", null).style("filter", null)
-        .style("stroke", null).style("stroke-width", null);
+      cells.classed("treemap-cell--dim", false)
+        .classed("treemap-cell--active", false)
+        .classed("treemap-cell--focus", false);
       hideTooltip();
     });
 

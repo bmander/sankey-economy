@@ -284,6 +284,19 @@ footer a {
 .sankey-node.node-financial rect   { fill: var(--color-financial); }
 .sankey-node.node-trade rect       { fill: var(--color-trade); }
 
+/* Node value labels (dollar amounts below names) */
+.node-value {
+  font-size: 9.5px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.sankey-node.node-govt .node-value        { fill: var(--color-govt); }
+.sankey-node.node-household .node-value   { fill: var(--color-household); }
+.sankey-node.node-business .node-value    { fill: var(--color-business); }
+.sankey-node.node-financial .node-value   { fill: var(--color-financial); }
+.sankey-node.node-trade .node-value       { fill: var(--color-trade); }
+
 
 /* --------------------------------------------------------------------------
    Sankey Links (flows)
@@ -381,6 +394,17 @@ footer a {
   font-size: 0.8rem;
   color: var(--color-text-tertiary);
   line-height: 1.4;
+}
+
+.tooltip-description {
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+  color: var(--color-text-secondary);
+}
+
+.tooltip-detail--section {
+  margin-top: var(--space-1);
 }
 
 .tooltip-flow-label {
@@ -993,6 +1017,23 @@ select.control-select {
 .treemap-cell rect {
   transition: opacity var(--transition-fast),
               filter var(--transition-fast);
+}
+
+/* Treemap hover states — mirrors Sankey's has-focus / is-highlighted pattern */
+.treemap-cell--dim rect {
+  opacity: 0.6;
+}
+
+.treemap-cell--active rect {
+  opacity: 1;
+  filter: brightness(1.08);
+}
+
+.treemap-cell--focus rect {
+  opacity: 1;
+  filter: brightness(1.15);
+  stroke: #fff;
+  stroke-width: 2px;
 }
 
 /* Hint indicator on depreciation node */
