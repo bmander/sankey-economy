@@ -38,6 +38,8 @@
   --color-text-secondary: #555550;
   --color-text-tertiary: #8a8a82;
   --color-text-inverse: #fafaf8;
+  --color-text-inverse-soft: rgba(250, 250, 248, 0.85);
+  --color-text-inverse-muted: rgba(250, 250, 248, 0.7);
 
   /* --- Category: Government (blues) --- */
   --color-govt: #2171b5;
@@ -963,7 +965,7 @@ select.control-select {
   font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
-  fill: #fff;
+  fill: var(--color-text-inverse);
   pointer-events: none;
 }
 
@@ -971,16 +973,20 @@ select.control-select {
   font-family: var(--font-body);
   font-size: 10px;
   font-weight: 500;
-  fill: rgba(255, 255, 255, 0.85);
+  fill: var(--color-text-inverse-soft);
   pointer-events: none;
 }
 
 .treemap-cell-pct {
   font-family: var(--font-body);
   font-size: 9px;
-  fill: rgba(255, 255, 255, 0.7);
+  fill: var(--color-text-inverse-muted);
   pointer-events: none;
 }
+
+.treemap-cell--dark-text .treemap-cell-label { fill: var(--color-text-primary); }
+.treemap-cell--dark-text .treemap-cell-value { fill: var(--color-text-secondary); }
+.treemap-cell--dark-text .treemap-cell-pct   { fill: var(--color-text-tertiary); }
 
 .treemap-group-label {
   font-family: var(--font-body);
