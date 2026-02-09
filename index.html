@@ -67,13 +67,17 @@ const DATA = {
 // ============================================================
 // CATEGORY COLORS (matching CSS custom properties)
 // ============================================================
-const CATEGORY_COLORS = {
-  govt:      "#2171b5",
-  household: "#238b45",
-  business:  "#d94701",
-  financial: "#6a51a3",
-  trade:     "#636363"
-};
+const CATEGORY_COLORS = (() => {
+  const style = getComputedStyle(document.documentElement);
+  const get = (name) => style.getPropertyValue(name).trim();
+  return {
+    govt:      get("--color-govt"),
+    household: get("--color-household"),
+    business:  get("--color-business"),
+    financial: get("--color-financial"),
+    trade:     get("--color-trade")
+  };
+})();
 
 const CATEGORY_LABELS = {
   govt:      "Government & GDP",
@@ -717,9 +721,7 @@ function renderTree() {
     const h = d.y1 - d.y0;
     const g = d3.select(this);
     const dark = useDarkText(d);
-    const labelFill = dark ? "var(--color-text-primary)" : "#fff";
-    const valueFill = dark ? "var(--color-text-secondary)" : "rgba(255,255,255,0.85)";
-    const pctFill   = dark ? "var(--color-text-tertiary)" : "rgba(255,255,255,0.7)";
+    if (dark) g.classed("treemap-cell--dark-text", true);
 
     // Tier 4: too small for anything
     if (w < 25 || h < 14) return;
@@ -730,7 +732,6 @@ function renderTree() {
       g.append("text")
         .attr("class", "treemap-cell-label treemap-cell-label--xs")
         .attr("x", 3).attr("y", h / 2 + 3)
-        .attr("fill", labelFill)
         .text(abbr);
       return;
     }
@@ -743,7 +744,6 @@ function renderTree() {
       g.append("text")
         .attr("class", "treemap-cell-label treemap-cell-label--sm")
         .attr("x", 4).attr("y", 13)
-        .attr("fill", labelFill)
         .text(display);
       return;
     }
@@ -754,14 +754,12 @@ function renderTree() {
     g.append("text")
       .attr("class", "treemap-cell-label")
       .attr("x", 5).attr("y", 14)
-      .attr("fill", labelFill)
       .text(name.length > maxChars ? name.slice(0, maxChars - 1) + "\u2026" : name);
 
     if (h >= 34) {
       g.append("text")
         .attr("class", "treemap-cell-value")
         .attr("x", 5).attr("y", 27)
-        .attr("fill", valueFill)
         .text(formatValue(d.value));
     }
 
@@ -770,7 +768,6 @@ function renderTree() {
       g.append("text")
         .attr("class", "treemap-cell-pct")
         .attr("x", 5).attr("y", 39)
-        .attr("fill", pctFill)
         .text(`${pct}% of total`);
     }
   });
@@ -790,7 +787,7 @@ function renderTree() {
         .select("rect").style("opacity", 1).style("filter", "brightness(1.08)");
       d3.select(this).select("rect")
         .style("opacity", 1).style("filter", "brightness(1.15)")
-        .style("stroke", "#fff").style("stroke-width", "2px");
+        .style("stroke", "var(--color-text-inverse)").style("stroke-width", "2px");
 
       // Tooltip with breadcrumb path
       const ancestors = d.ancestors().reverse().slice(1).map(a => a.data.name);
