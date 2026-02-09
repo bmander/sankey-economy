@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
   <script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+  <script src="data/sankey.js"></script>
+  <script src="data/treemaps.js"></script>
 </head>
 <body>
 
@@ -50,117 +52,7 @@
   </footer>
 
 <script>
-// ============================================================
-// DATA (from researcher: data/national_accounts.json)
-// ============================================================
-const RAW_NODES = [
-  { id: 0,  name: "Gross Domestic Product",         rawCategory: "gdp" },
-  { id: 1,  name: "Compensation of Employees",      rawCategory: "income" },
-  { id: 2,  name: "Corporate Profits",              rawCategory: "income" },
-  { id: 3,  name: "Proprietors' Income",            rawCategory: "income" },
-  { id: 4,  name: "Rental Income",                  rawCategory: "income" },
-  { id: 5,  name: "Net Interest & Misc.",           rawCategory: "income" },
-  { id: 6,  name: "Taxes on Production",            rawCategory: "income" },
-  { id: 7,  name: "Depreciation (CCA)",             rawCategory: "income" },
-  { id: 8,  name: "Personal Income Tax",            rawCategory: "tax" },
-  { id: 9,  name: "Payroll Taxes",                  rawCategory: "tax" },
-  { id: 10, name: "Corporate Income Tax",           rawCategory: "tax" },
-  { id: 11, name: "Federal Government",             rawCategory: "government" },
-  { id: 12, name: "State & Local Government",       rawCategory: "government" },
-  { id: 13, name: "Social Security",                rawCategory: "federal_spending" },
-  { id: 14, name: "Medicare",                       rawCategory: "federal_spending" },
-  { id: 15, name: "Medicaid",                       rawCategory: "federal_spending" },
-  { id: 16, name: "National Defense",               rawCategory: "federal_spending" },
-  { id: 17, name: "Net Interest on Debt",           rawCategory: "federal_spending" },
-  { id: 18, name: "Other Mandatory & Transfers",    rawCategory: "federal_spending" },
-  { id: 36, name: "Nondefense Discretionary",       rawCategory: "federal_spending" },
-  { id: 19, name: "Disposable Personal Income",     rawCategory: "household" },
-  { id: 20, name: "Housing, Utilities & Fuels",      rawCategory: "consumption" },
-  { id: 21, name: "Healthcare",                     rawCategory: "consumption" },
-  { id: 22, name: "Food & Beverages",               rawCategory: "consumption" },
-  { id: 23, name: "Transportation",                 rawCategory: "consumption" },
-  { id: 24, name: "Recreation & Entertainment",     rawCategory: "consumption" },
-  { id: 25, name: "Financial Services & Insurance", rawCategory: "consumption" },
-  { id: 26, name: "Other Goods & Services",         rawCategory: "consumption" },
-  { id: 27, name: "Personal Savings",               rawCategory: "savings" },
-  { id: 28, name: "Education",                      rawCategory: "state_local" },
-  { id: 29, name: "Public Welfare & Health",        rawCategory: "state_local" },
-  { id: 30, name: "Infrastructure & Other",         rawCategory: "state_local" },
-  { id: 31, name: "Federal Borrowing (Deficit)",    rawCategory: "deficit" },
-  { id: 32, name: "Retained Earnings",              rawCategory: "business" },
-  { id: 33, name: "Dividends to Households",        rawCategory: "income_flow" },
-  { id: 34, name: "Government Transfers",           rawCategory: "transfers" },
-  { id: 35, name: "Other Federal Revenue",          rawCategory: "tax" }
-];
-
-const RAW_LINKS = [
-  { source: 0,  target: 1,  value: 14900 },
-  { source: 0,  target: 2,  value: 3600 },
-  { source: 0,  target: 3,  value: 2050 },
-  { source: 0,  target: 4,  value: 1100 },
-  { source: 0,  target: 5,  value: 1250 },
-  { source: 0,  target: 6,  value: 1800 },
-  { source: 0,  target: 7,  value: 4810 },
-  { source: 1,  target: 8,  value: 2430 },
-  { source: 1,  target: 9,  value: 1710 },
-  { source: 1,  target: 19, value: 10760 },
-  { source: 2,  target: 10, value: 530 },
-  { source: 2,  target: 33, value: 1500 },
-  { source: 2,  target: 32, value: 1570 },
-  { source: 3,  target: 19, value: 1750 },
-  { source: 3,  target: 8,  value: 300 },
-  { source: 4,  target: 19, value: 1100 },
-  { source: 5,  target: 19, value: 1250 },
-  { source: 33, target: 19, value: 1500 },
-  { source: 8,  target: 11, value: 2730 },
-  { source: 9,  target: 11, value: 1710 },
-  { source: 10, target: 11, value: 530 },
-  { source: 35, target: 11, value: 230 },
-  { source: 31, target: 11, value: 1700 },
-  { source: 6,  target: 12, value: 1800 },
-  { source: 11, target: 13, value: 1461 },
-  { source: 11, target: 14, value: 870 },
-  { source: 11, target: 15, value: 620 },
-  { source: 11, target: 16, value: 874 },
-  { source: 11, target: 17, value: 882 },
-  { source: 11, target: 18, value: 700 },
-  { source: 11, target: 36, value: 1493 },
-  { source: 13, target: 34, value: 1461 },
-  { source: 14, target: 34, value: 870 },
-  { source: 15, target: 34, value: 620 },
-  { source: 18, target: 34, value: 700 },
-  { source: 34, target: 19, value: 3651 },
-  { source: 12, target: 28, value: 750 },
-  { source: 12, target: 29, value: 540 },
-  { source: 12, target: 30, value: 510 },
-  { source: 19, target: 20, value: 3630 },
-  { source: 19, target: 21, value: 4088 },
-  { source: 19, target: 22, value: 2710 },
-  { source: 19, target: 23, value: 1808 },
-  { source: 19, target: 24, value: 1873 },
-  { source: 19, target: 25, value: 1560 },
-  { source: 19, target: 26, value: 3613 },
-  { source: 19, target: 27, value: 729 }
-];
-
-// ============================================================
-// MAP RESEARCHER CATEGORIES -> DESIGNER COLOR CATEGORIES
-// ============================================================
-const CATEGORY_MAP = {
-  gdp:                 "business",
-  income:              "household",
-  tax:                 "govt",
-  government:          "govt",
-  federal_spending:    "govt",
-  household:           "household",
-  consumption:         "household",
-  savings:             "financial",
-  state_local:         "govt",
-  deficit:             "financial",
-  business:            "business",
-  income_flow:         "financial",
-  transfers:           "govt"
-};
+// DATA: RAW_NODES, RAW_LINKS, CATEGORY_MAP — see data/sankey.js
 
 const DATA = {
   nodes: RAW_NODES.map(n => ({
@@ -265,45 +157,7 @@ function hideTooltip() {
   tooltip.classed("is-visible", false);
 }
 
-const NODE_DESCRIPTIONS = {
-  0:  "The total value of all goods and services produced in the U.S. in a year — the broadest measure of the economy's size.",
-  1:  "Wages, salaries, and benefits paid to workers — the largest slice of national income.",
-  2:  "What's left of business revenue after paying workers, suppliers, and other costs.",
-  3:  "Income earned by self-employed people, freelancers, and small-business owners.",
-  4:  "Income from owning property or land, including imputed rent for homeowners.",
-  5:  "Interest earned by households and businesses on savings, bonds, and loans, minus interest paid.",
-  6:  "Sales taxes, property taxes, customs duties, and other taxes baked into the price of goods.",
-  7:  "The cost of wear and tear on buildings, equipment, and software — money set aside to replace aging capital.",
-  8:  "Federal and state taxes on individual income from wages, investments, and other sources.",
-  9:  "Social Security and Medicare taxes withheld from paychecks, split between workers and employers.",
-  10: "Federal tax on corporate profits, after deductions and credits.",
-  11: "Total federal revenue from taxes, borrowing, and other sources, funding all federal programs.",
-  12: "Revenue from property taxes, sales taxes, and state income taxes, funding local services.",
-  13: "Monthly payments to retirees and disabled workers, funded by payroll taxes.",
-  14: "Federal health insurance for Americans 65 and older, covering hospital and doctor visits.",
-  15: "Joint federal-state health insurance for low-income families, children, and the elderly.",
-  16: "Spending on the military, including personnel, weapons systems, and operations.",
-  17: "Interest the federal government pays on the national debt — a fast-growing budget item.",
-  18: "Veterans' benefits, food assistance (SNAP), unemployment insurance, and other safety-net programs.",
-  36: "Federal spending on science, transportation, education, housing, and other civilian agencies.",
-  19: "The money households actually have to spend or save after taxes — their take-home income plus government benefits.",
-  20: "Imputed rent for homeowners, tenant rent, electricity, gas, water, and other fuels — the BEA's measure of what Americans spend on shelter and utilities.",
-  21: "Out-of-pocket medical costs, insurance premiums, and other health-related spending by households.",
-  22: "Groceries, restaurant meals, and beverages — both at home and eating out.",
-  23: "Cars, gasoline, public transit, rideshares, and vehicle maintenance.",
-  24: "Streaming services, sports, travel, hobbies, and other leisure spending.",
-  25: "Banking fees, insurance premiums, brokerage services, and financial planning.",
-  26: "Clothing, personal care, education, communication services, and everything else households buy.",
-  27: "The portion of disposable income that households don't spend — the difference between DPI and total personal consumption expenditures.",
-  28: "State and local spending on public K-12 schools, community colleges, and state universities.",
-  29: "State-funded Medicaid, welfare programs, public hospitals, and community health services.",
-  30: "Roads, bridges, water systems, police, fire departments, parks, and general government operations.",
-  31: "The gap between what the federal government spends and what it collects in taxes — covered by issuing Treasury bonds.",
-  32: "The share of corporate profits that companies keep to reinvest in the business rather than pay out as dividends.",
-  33: "Corporate profits paid out to shareholders — a key source of household investment income.",
-  34: "Social Security checks, Medicare benefits, Medicaid, and other government payments that flow to households.",
-  35: "Estate taxes, excise taxes, Federal Reserve earnings, and other miscellaneous federal income."
-};
+// DATA: NODE_DESCRIPTIONS — see data/sankey.js
 
 function setNodeTooltip(d) {
   const color = CATEGORY_COLORS[d.category];
@@ -590,119 +444,7 @@ window.addEventListener("resize", () => {
 // DEPRECIATION TREE DRILL-DOWN
 // ============================================================
 
-// Depreciation breakdown data (BEA Fixed Assets Tables 2.4 & 7.3, 2024)
-const DEPRECIATION_TREE = {"name":"Depreciation (CCA)","value":4810,"children":[{"name":"Private","value":3993,"children":[{"name":"Structures","value":1382,"children":[{"name":"Residential Structures","value":782,"children":[{"name":"Housing Units","value":313,"children":[{"name":"Permanent Site","value":295},{"name":"Manufactured Homes","value":18}]},{"name":"Ownership Transfer Costs","value":255},{"name":"Improvements","value":211},{"name":"Other Residential","value":3}]},{"name":"Nonresidential Structures","value":600,"children":[{"name":"Commercial & Health Care","value":210,"children":[{"name":"Office","value":85},{"name":"Health Care","value":35},{"name":"Multimerchandise Shopping","value":29},{"name":"Warehouses","value":24},{"name":"Food & Beverage","value":14},{"name":"Other Commercial","value":23}]},{"name":"Other Structures","value":105,"children":[{"name":"Lodging","value":28},{"name":"Amusement & Recreation","value":18},{"name":"Educational & Vocational","value":17},{"name":"Transportation","value":15},{"name":"Farm","value":13},{"name":"Religious","value":9},{"name":"Other","value":5}]},{"name":"Mining Exploration","value":101,"children":[{"name":"Petroleum & Natural Gas","value":91},{"name":"Mining","value":10}]},{"name":"Power & Communication","value":93,"children":[{"name":"Power","value":70},{"name":"Communication","value":23}]},{"name":"Manufacturing","value":91}]}]},{"name":"Intellectual Property","value":1325,"children":[{"name":"Research & Development","value":618,"children":[{"name":"Business R&D","value":584,"children":[{"name":"Manufacturing R&D","value":340,"children":[{"name":"Pharmaceutical","value":101},{"name":"Other Manufacturing","value":71},{"name":"Other Computer & Electronic","value":55},{"name":"Semiconductor","value":50},{"name":"Motor Vehicles","value":34},{"name":"Aerospace","value":16},{"name":"Chemical (ex Pharma)","value":13}]},{"name":"Nonmanufacturing R&D","value":244}]},{"name":"Nonprofit R&D","value":34}]},{"name":"Software","value":601,"children":[{"name":"Prepackaged","value":299},{"name":"Custom","value":220},{"name":"Own Account","value":82}]},{"name":"Entertainment Originals","value":106,"children":[{"name":"Long-lived TV","value":56},{"name":"Theatrical Movies","value":22},{"name":"Books","value":12},{"name":"Music","value":11},{"name":"Other","value":5}]}]},{"name":"Equipment","value":1286,"children":[{"name":"Nonresidential Equipment","value":1270,"children":[{"name":"Information Processing","value":403,"children":[{"name":"Computers & Peripherals","value":143},{"name":"Medical Equipment","value":109},{"name":"Communication Equipment","value":96},{"name":"Nonmedical Instruments","value":41},{"name":"Photocopy & Related","value":8},{"name":"Office & Accounting","value":6}]},{"name":"Other Equipment","value":318,"children":[{"name":"Other Nonresidential","value":84},{"name":"Furniture & Fixtures","value":55},{"name":"Construction Machinery","value":54},{"name":"Service Industry Machinery","value":43},{"name":"Agricultural Machinery","value":40},{"name":"Mining & Oilfield","value":31},{"name":"Electrical Equipment","value":11}]},{"name":"Transportation Equipment","value":282,"children":[{"name":"Trucks, Buses & Trailers","value":194},{"name":"Aircraft","value":45},{"name":"Autos","value":25},{"name":"Railroad Equipment","value":11},{"name":"Ships & Boats","value":7}]},{"name":"Industrial Equipment","value":267,"children":[{"name":"General Industrial","value":104},{"name":"Special Industry Machinery","value":46},{"name":"Electrical Transmission","value":43},{"name":"Metalworking Machinery","value":37},{"name":"Fabricated Metal Products","value":25},{"name":"Engines & Turbines","value":12}]}]},{"name":"Residential Equipment","value":16}]}]},{"name":"Government","value":817,"children":[{"name":"State & Local","value":424,"children":[{"name":"Structures","value":288,"children":[{"name":"Highways & Streets","value":99},{"name":"Educational","value":72},{"name":"Office","value":23},{"name":"Transportation","value":22},{"name":"Sewer Systems","value":19},{"name":"Water Systems","value":14},{"name":"Power","value":10},{"name":"Amusement & Recreation","value":7},{"name":"Health Care","value":7},{"name":"Residential","value":6},{"name":"Public Safety","value":5},{"name":"Other","value":4}]},{"name":"Equipment","value":71},{"name":"Intellectual Property","value":65,"children":[{"name":"Software","value":40},{"name":"R&D","value":25}]}]},{"name":"Federal","value":393,"children":[{"name":"Defense","value":209,"children":[{"name":"Equipment","value":95,"children":[{"name":"Other Equipment","value":39},{"name":"Aircraft","value":19},{"name":"Ships","value":17},{"name":"Electronics","value":9},{"name":"Missiles","value":6},{"name":"Vehicles","value":5}]},{"name":"Intellectual Property","value":94,"children":[{"name":"R&D","value":71},{"name":"Software","value":23}]},{"name":"Structures","value":20,"children":[{"name":"Military Facilities","value":15},{"name":"Buildings","value":5}]}]},{"name":"Nondefense","value":184,"children":[{"name":"Intellectual Property","value":141,"children":[{"name":"R&D","value":96},{"name":"Software","value":45}]},{"name":"Equipment","value":24},{"name":"Structures","value":19,"children":[{"name":"Conservation & Development","value":6},{"name":"Office","value":3},{"name":"Public Safety","value":2},{"name":"Health Care","value":2},{"name":"Other","value":6}]}]}]}]}]};
-
-// Housing & Utilities breakdown data (BEA NIPA Table 2.5.5, 2024)
-// PCE breakdown trees (BEA NIPA Table 2.5.5, 2024)
-const HOUSING_TREE = {"name":"Housing, Utilities & Fuels","value":3630,"children":[{"name":"Housing","value":3147,"children":[{"name":"Owner-Occupied Imputed Rent","value":2374},{"name":"Tenant-Occupied Rent","value":740},{"name":"Farm Dwellings","value":30},{"name":"Group Housing","value":3}]},{"name":"Utilities & Fuels","value":483,"children":[{"name":"Electricity","value":253},{"name":"Water Supply & Sanitation","value":140},{"name":"Natural Gas","value":64},{"name":"Fuel Oil & Other Fuels","value":26}]}]};
-
-const HEALTH_TREE = {"name":"Health","value":4088,"children":[{"name":"Hospital & Nursing Home Services","value":1742,"children":[{"name":"Hospitals","value":1493},{"name":"Nursing Homes","value":249}]},{"name":"Outpatient Services","value":1573,"children":[{"name":"Physician Services","value":793},{"name":"Paramedical Services","value":594,"children":[{"name":"Other Professional Medical","value":359},{"name":"Home Health Care","value":184},{"name":"Medical Laboratories","value":51}]},{"name":"Dental Services","value":186}]},{"name":"Medical Products & Equipment","value":773,"children":[{"name":"Pharmaceuticals","value":677,"children":[{"name":"Pharmaceutical Products","value":669},{"name":"Other Medical Products","value":8}]},{"name":"Therapeutic Appliances & Equipment","value":96}]}]};
-
-const FOOD_TREE = {"name":"Food & Beverages","value":2710,"children":[{"name":"Food Services","value":1231,"children":[{"name":"Purchased Meals & Beverages","value":1196},{"name":"Food Furnished to Employees","value":35}]},{"name":"Food & Beverages (Off-Premises)","value":1479,"children":[{"name":"Food & Nonalcoholic Beverages","value":1250},{"name":"Alcoholic Beverages","value":228},{"name":"Farm-Produced Food","value":1}]}]};
-
-const TRANSPORT_TREE = {"name":"Transportation","value":1808,"children":[{"name":"Motor Vehicle Operation","value":910,"children":[{"name":"Fuels, Lubricants & Fluids","value":414},{"name":"Maintenance & Repair","value":258},{"name":"Parts & Accessories","value":126},{"name":"Other Motor Vehicle Services","value":112}]},{"name":"Motor Vehicles","value":606,"children":[{"name":"New Motor Vehicles","value":395},{"name":"Used Motor Vehicles (Net)","value":211}]},{"name":"Public Transportation","value":292,"children":[{"name":"Air Transportation","value":189},{"name":"Ground Transportation","value":96},{"name":"Water Transportation","value":7}]}]};
-
-const RECREATION_TREE = {"name":"Recreation","value":1873,"children":[{"name":"Video, Audio & Computers","value":556,"children":[{"name":"Information Processing Equipment","value":308},{"name":"Services Related to Equipment","value":159},{"name":"Video & Audio Equipment","value":89}]},{"name":"Sports & Recreational Goods","value":439,"children":[{"name":"Other Sporting Goods","value":332},{"name":"Sports & Recreational Vehicles","value":99},{"name":"Maintenance & Repair","value":8}]},{"name":"Clubs, Parks, Theaters & Museums","value":291,"children":[{"name":"Admissions to Spectator Amusements","value":106,"children":[{"name":"Live Entertainment","value":53},{"name":"Spectator Sports","value":41},{"name":"Motion Picture Theaters","value":12}]},{"name":"Amusement Parks & Campgrounds","value":87},{"name":"Membership Clubs & Sports Centers","value":82},{"name":"Museums & Libraries","value":16}]},{"name":"Gambling","value":207},{"name":"Pets & Pet Products","value":189},{"name":"Magazines, Newspapers & Books","value":150},{"name":"Package Tours","value":22},{"name":"Photographic Goods & Services","value":19}]};
-
-const FINANCIAL_TREE = {"name":"Financial Services & Insurance","value":1560,"children":[{"name":"Financial Services","value":1041,"children":[{"name":"Services Furnished Without Payment","value":565},{"name":"Charges, Fees & Commissions","value":476}]},{"name":"Insurance","value":519,"children":[{"name":"Net Health Insurance","value":270,"children":[{"name":"Medical Care & Hospitalization","value":229},{"name":"Workers' Compensation","value":36},{"name":"Income Loss","value":5}]},{"name":"Life Insurance","value":128},{"name":"Motor Vehicle & Transport Insurance","value":103},{"name":"Net Household Insurance","value":18}]}]};
-
-const OTHER_TREE = {"name":"Other Goods & Services","value":3613,"children":[{"name":"Other Goods & Services","value":1293,"children":[{"name":"Personal Care","value":413},{"name":"Social Services & Religious Activities","value":335},{"name":"Professional & Other Services","value":278,"children":[{"name":"Legal Services","value":141},{"name":"Accounting & Business Services","value":76},{"name":"Funeral & Burial Services","value":30},{"name":"Labor Organization Dues","value":18},{"name":"Professional Association Dues","value":13}]},{"name":"Personal Items","value":152},{"name":"Tobacco","value":115}]},{"name":"Furnishings & Household Maintenance","value":797,"children":[{"name":"Furniture, Furnishings & Floor Coverings","value":252},{"name":"Other Household Goods & Services","value":225},{"name":"Household Textiles","value":100},{"name":"Household Appliances","value":100},{"name":"Tools & Equipment for House & Garden","value":61},{"name":"Glassware, Tableware & Utensils","value":59}]},{"name":"Clothing, Footwear & Related","value":554,"children":[{"name":"Clothing","value":438,"children":[{"name":"Garments","value":411,"children":[{"name":"Women's & Girls'","value":241},{"name":"Men's & Boys'","value":144},{"name":"Children's & Infants'","value":26}]},{"name":"Cleaning, Repair & Rental","value":23},{"name":"Other Clothing Materials","value":4}]},{"name":"Footwear","value":116}]},{"name":"Education","value":361,"children":[{"name":"Higher Education","value":206},{"name":"Commercial & Vocational Schools","value":83},{"name":"Nursery, Elementary & Secondary","value":63},{"name":"Educational Books","value":9}]},{"name":"Communication","value":344,"children":[{"name":"Telecommunication Services","value":181},{"name":"Internet Access","value":111},{"name":"Telephone Equipment","value":35},{"name":"Postal & Delivery Services","value":17}]},{"name":"Accommodations","value":198},{"name":"Net Foreign Travel","value":66}]};
-
-// Shared color helper for PCE treemaps
-function makeTreeColorFn(hueMap, defaultHue) {
-  return function(d) {
-    let ancestor = d; while (ancestor.depth > 1) ancestor = ancestor.parent;
-    const hueBase = hueMap[ancestor.data.name] || defaultHue;
-    const depth = Math.min(d.depth, 5);
-    const sat = 70 - (depth - 1) * 8;
-    const lit = 35 + (depth - 1) * 9;
-    const siblings = d.parent ? d.parent.children : [d];
-    const idx = siblings.indexOf(d);
-    const hueShift = siblings.length > 1 ? (idx / (siblings.length - 1) - 0.5) * 20 : 0;
-    return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
-  };
-}
-
-// Treemap drill-down configurations keyed by Sankey node ID
-const TREE_CONFIGS = {
-  7: {
-    tree: DEPRECIATION_TREE,
-    title: "Depreciation (CCA): Where $4.8 Trillion in Capital Wears Out",
-    subtitle: "BEA Fixed Assets Tables 2.4 & 7.3 — Consumption of fixed capital, 2024 (billions USD)",
-    ariaLabel: "Treemap showing breakdown of $4.8 trillion in US depreciation",
-    pctLabel: "total depreciation",
-    colorFn: function(d) {
-      let ancestor = d; while (ancestor.depth > 1) ancestor = ancestor.parent;
-      const isPrivate = ancestor.data.name === "Private";
-      const hueBase = isPrivate ? 25 : 210;
-      const hueRange = isPrivate ? 25 : 30;
-      const depth = Math.min(d.depth, 5);
-      const sat = 80 - (depth - 1) * 10;
-      const lit = 38 + (depth - 1) * 9;
-      const siblings = d.parent ? d.parent.children : [d];
-      const idx = siblings.indexOf(d);
-      const hueShift = siblings.length > 1 ? (idx / (siblings.length - 1) - 0.5) * hueRange : 0;
-      return `hsl(${hueBase + hueShift}, ${sat}%, ${lit}%)`;
-    }
-  },
-  20: {
-    tree: HOUSING_TREE,
-    title: "Housing, Utilities & Fuels: $3.63 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $3.63T in housing and utilities spending",
-    pctLabel: "housing spending",
-    colorFn: makeTreeColorFn({"Housing": 145, "Utilities & Fuels": 35}, 145)
-  },
-  21: {
-    tree: HEALTH_TREE,
-    title: "Health: $4.09 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $4.09T in healthcare spending",
-    pctLabel: "health spending",
-    colorFn: makeTreeColorFn({"Hospital & Nursing Home Services": 350, "Outpatient Services": 320, "Medical Products & Equipment": 280}, 340)
-  },
-  22: {
-    tree: FOOD_TREE,
-    title: "Food & Beverages: $2.71 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $2.71T in food and beverage spending",
-    pctLabel: "food spending",
-    colorFn: makeTreeColorFn({"Food Services": 25, "Food & Beverages (Off-Premises)": 80}, 50)
-  },
-  23: {
-    tree: TRANSPORT_TREE,
-    title: "Transportation: $1.81 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $1.81T in transportation spending",
-    pctLabel: "transport spending",
-    colorFn: makeTreeColorFn({"Motor Vehicle Operation": 210, "Motor Vehicles": 240, "Public Transportation": 270}, 230)
-  },
-  24: {
-    tree: RECREATION_TREE,
-    title: "Recreation: $1.87 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $1.87T in recreation spending",
-    pctLabel: "recreation spending",
-    colorFn: makeTreeColorFn({"Video, Audio & Computers": 270, "Sports & Recreational Goods": 300, "Clubs, Parks, Theaters & Museums": 330, "Gambling": 15, "Pets & Pet Products": 45, "Magazines, Newspapers & Books": 190, "Package Tours": 170, "Photographic Goods & Services": 220}, 280)
-  },
-  25: {
-    tree: FINANCIAL_TREE,
-    title: "Financial Services & Insurance: $1.56 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $1.56T in financial services and insurance spending",
-    pctLabel: "financial spending",
-    colorFn: makeTreeColorFn({"Financial Services": 190, "Insurance": 250}, 220)
-  },
-  26: {
-    tree: OTHER_TREE,
-    title: "Other Goods & Services: $3.61 Trillion",
-    subtitle: "BEA NIPA Table 2.5.5 — Personal consumption expenditures, 2024 (billions USD)",
-    ariaLabel: "Treemap: $3.61T in other goods and services spending",
-    pctLabel: "other spending",
-    colorFn: makeTreeColorFn({"Other Goods & Services": 0, "Furnishings & Household Maintenance": 30, "Clothing, Footwear & Related": 280, "Education": 210, "Communication": 180, "Accommodations": 45, "Net Foreign Travel": 150}, 200)
-  }
-};
+// DATA: *_TREE constants, makeTreeColorFn, TREE_CONFIGS — see data/treemaps.js
 
 let treeGroup = null;
 let activeTreeId = null;
@@ -844,50 +586,7 @@ function exitTreeView() {
   });
 }
 
-// Abbreviation map for small treemap cells
-const ABBREV = {
-  "Structures": "Struc.", "Equipment": "Equip.", "Intellectual Property": "IP",
-  "Nonresidential": "Non-Res.", "Information Processing": "Info Proc.",
-  "Transportation Equipment": "Transport", "Industrial Equipment": "Industrial",
-  "Entertainment Originals": "Entertain.", "Research & Development": "R&D",
-  "Commercial & Health Care": "Comm/Health", "Power & Communication": "Power/Comm",
-  "Mining Exploration": "Mining", "Manufacturing": "Mfg.",
-  "Residential Structures": "Residential", "Nonresidential Structures": "Non-Res.",
-  "Nonresidential Equipment": "Non-Res.", "Residential Equipment": "Res. Equip.",
-  "Ownership Transfer Costs": "Transfer Costs", "Manufactured Homes": "Manuf. Homes",
-  "Multimerchandise Shopping": "Shopping", "Educational & Vocational": "Educ/Vocat.",
-  "Petroleum & Natural Gas": "Petro & Gas", "Mining & Oilfield": "Mining/Oil",
-  "Trucks, Buses & Trailers": "Trucks/Buses", "Railroad Equipment": "Railroad",
-  "Fabricated Metal Products": "Fab. Metal", "Electrical Transmission": "Elec. Trans.",
-  "Special Industry Machinery": "Special Mach.", "Construction Machinery": "Const. Mach.",
-  "Service Industry Machinery": "Service Mach.", "Agricultural Machinery": "Ag. Mach.",
-  "Nonmedical Instruments": "Instruments", "Photocopy & Related": "Photocopy",
-  "Office & Accounting": "Office", "Other Nonresidential": "Other Non-Res.",
-  "General Industrial": "General Ind.", "Metalworking Machinery": "Metalwork",
-  "Engines & Turbines": "Engines", "Chemical (ex Pharma)": "Chemical",
-  "Other Computer & Electronic": "Other Comp.", "Nonmanufacturing R&D": "Non-Mfg. R&D",
-  "Manufacturing R&D": "Mfg. R&D", "Theatrical Movies": "Movies",
-  "Military Facilities": "Military", "Conservation & Development": "Conserv/Dev",
-  "Highways & Streets": "Highways", "Construction & Maintenance": "Const/Maint",
-  "Household Operations": "Household Ops", "Household Supplies": "Supplies",
-  "Maintenance & Repair": "Maint/Repair", "Homeowners Insurance": "Insurance",
-  "Contractor Services": "Contractors", "Cleaning Services": "Cleaning",
-  "Cleaning Products": "Cleaning", "Paper & Disposables": "Paper/Disp.",
-  "Plumbing & Electrical": "Plumb/Elec", "Roofing & Exteriors": "Roofing",
-  "Painting & Finishing": "Painting", "Building Materials": "Materials",
-  "Cooking & Water Heating": "Cook/Heat", "Water, Sewer & Trash": "Water/Sewer",
-  "Fuel Oil & Other Energy": "Fuel/Other", "Fuel Oil & Propane": "Fuel/Propane",
-  "Bundled Community Utilities": "Community", "Septic & Well Services": "Septic/Well",
-  "Other Utility Services": "Other Util.", "Subsidized & Public Housing": "Subsidized",
-  "Townhomes & Duplexes": "Town/Duplex", "Large Complexes (50+ units)": "Large (50+)",
-  "Small Buildings (2–4 units)": "Small (2–4)", "Mid-Size (5–49 units)": "Mid (5–49)",
-  "Single-Family Rentals": "SF Rentals", "Single-Family Homes": "Single-Family",
-  "Mobile & Manufactured": "Mobile", "Appliances & Lighting": "Appl/Light",
-  "Heating & Cooling": "Heat/Cool", "Detached Houses": "Detached",
-  "Security Systems": "Security", "Lawn Care Services": "Lawn Care",
-  "Plants & Supplies": "Plants", "Other Operations": "Other Ops",
-  "Other Owner Costs": "Other Costs"
-};
+// DATA: ABBREV — see data/treemaps.js
 
 function renderTree() {
   const cfg = TREE_CONFIGS[activeTreeId];
