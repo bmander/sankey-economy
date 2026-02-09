@@ -292,7 +292,7 @@ nodes
     setNodeTooltip(d);
     showTooltip(event);
     if (!selectedNode) {
-      temporaryHighlight(d);
+      highlight(d);
     }
   })
   .on("mousemove", function(event) {
@@ -334,7 +334,7 @@ nodes.on("click", function(event, d) {
   }
 
   selectedNode = d;
-  applyHighlight(d);
+  highlight(d);
 });
 
 d3.select("body").on("click", function() {
@@ -352,12 +352,7 @@ d3.select("body").on("click", function() {
   }
 });
 
-function temporaryHighlight(d) {
-  container.classed("has-focus", true);
-  markConnected(d);
-}
-
-function applyHighlight(d) {
+function highlight(d) {
   container.classed("has-focus", true);
   markConnected(d);
 }
@@ -528,14 +523,12 @@ function onAllDone(selection, callback) {
   selection.on("end.done", tick).on("interrupt.done", tick);
 }
 
-function enterTreeView(nodeId) {
-  if (treeTransitioning) return;
-  activeTreeId = nodeId;
-  treeViewActive = true;
+// Shared helper: interrupt in-flight transitions, clear UI state,
+// then fade Sankey elements to the target opacity.
+function transitionSankeyVisibility(visible, callback) {
   treeTransitioning = true;
-  selectedNode = null;
-  clearHighlight();
   hideTooltip();
+  clearHighlight();
   document.querySelectorAll(".legend-item").forEach(el => {
     el.classList.remove("is-active");
     el.setAttribute("aria-pressed", "false");
@@ -545,22 +538,48 @@ function enterTreeView(nodeId) {
   svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
   if (treeGroup) {
     treeGroup.interrupt();
-    treeGroup.remove();
+    if (!visible) {
+      // Entering tree view — remove tree group immediately so it can be rebuilt
+      treeGroup.remove();
+    } else {
+      // Exiting tree view — fade out then remove
+      treeGroup
+        .transition()
+        .duration(DUR_TREE_OUT)
+        .style("opacity", 0)
+        .on("end", function() { d3.select(this).remove(); })
+        .on("interrupt", function() { d3.select(this).remove(); });
+    }
     treeGroup = null;
   }
 
-  // Fade out Sankey elements, then render treemap
   const sankeyEls = svg.selectAll(".sankey-links, .sankey-nodes");
+
+  if (visible) {
+    // Fading Sankey back in
+    sankeyEls.style("display", null).style("opacity", 0);
+  }
 
   const t = sankeyEls
     .transition()
     .duration(DUR_FADE_OUT)
-    .style("opacity", 0);
+    .style("opacity", visible ? 1 : 0);
 
   onAllDone(t, function() {
-    sankeyEls.style("display", "none");
-    renderTree();
+    if (!visible) sankeyEls.style("display", "none");
     treeTransitioning = false;
+    callback();
+  });
+}
+
+function enterTreeView(nodeId) {
+  if (treeTransitioning) return;
+  activeTreeId = nodeId;
+  treeViewActive = true;
+  selectedNode = null;
+
+  transitionSankeyVisibility(false, function() {
+    renderTree();
   });
 
   // Show back button and focus it for keyboard users
@@ -571,47 +590,11 @@ function enterTreeView(nodeId) {
 function exitTreeView() {
   if (!treeViewActive || treeTransitioning) return;
   treeViewActive = false;
-  treeTransitioning = true;
-  hideTooltip();
 
   // Hide back button
   backBtn.classList.remove("is-visible");
 
-  // Interrupt any in-flight transitions on Sankey elements
-  svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
-
-  // Fade out and remove tree
-  if (treeGroup) {
-    treeGroup.interrupt();
-    treeGroup
-      .transition()
-      .duration(DUR_TREE_OUT)
-      .style("opacity", 0)
-      .on("end", function() { d3.select(this).remove(); })
-      .on("interrupt", function() { d3.select(this).remove(); });
-    treeGroup = null;
-  }
-
-  // Clear any stale highlight state
-  clearHighlight();
-  document.querySelectorAll(".legend-item").forEach(el => {
-    el.classList.remove("is-active");
-    el.setAttribute("aria-pressed", "false");
-  });
-
-  // Fade Sankey back in
-  const restoreEls = svg.selectAll(".sankey-links, .sankey-nodes");
-  restoreEls
-    .style("display", null)
-    .style("opacity", 0);
-
-  const t = restoreEls
-    .transition()
-    .duration(DUR_FADE_OUT)
-    .style("opacity", 1);
-
-  onAllDone(t, function() {
-    treeTransitioning = false;
+  transitionSankeyVisibility(true, function() {
     // Return focus to the drillable node for keyboard users
     const focusNode = nodes.filter(n => n.id === activeTreeId).select("rect").node();
     if (focusNode) focusNode.focus();
