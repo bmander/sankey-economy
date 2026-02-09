@@ -229,7 +229,7 @@ const links = linkGroup.selectAll(".sankey-link")
     .on("mouseover", function(event, d) {
       setLinkTooltip(d);
       showTooltip(event);
-      if (!selectedNode) {
+      if (!state.selectedNode) {
         d3.select(this).classed("is-highlighted", true);
       }
     })
@@ -238,7 +238,7 @@ const links = linkGroup.selectAll(".sankey-link")
     })
     .on("mouseout", function() {
       hideTooltip();
-      if (!selectedNode) {
+      if (!state.selectedNode) {
         d3.select(this).classed("is-highlighted", false);
       }
     });
@@ -291,7 +291,7 @@ nodes
   .on("mouseover", function(event, d) {
     setNodeTooltip(d);
     showTooltip(event);
-    if (!selectedNode) {
+    if (!state.selectedNode) {
       temporaryHighlight(d);
     }
   })
@@ -300,7 +300,7 @@ nodes
   })
   .on("mouseout", function() {
     hideTooltip();
-    if (!selectedNode) {
+    if (!state.selectedNode) {
       clearHighlight();
     }
   });
@@ -308,42 +308,46 @@ nodes
 // ============================================================
 // CLICK-TO-HIGHLIGHT
 // ============================================================
-let selectedNode = null;
-let treeViewActive = false;
-let treeTransitioning = false;
+const state = {
+  selectedNode: null,
+  treeViewActive: false,
+  treeTransitioning: false,
+  treeGroup: null,
+  activeTreeId: null,
+};
 const container = d3.select("#sankey-container");
 
 nodes.on("click", function(event, d) {
   event.stopPropagation();
 
   // Block all clicks during transitions
-  if (treeTransitioning) return;
+  if (state.treeTransitioning) return;
 
   // If a drillable node is clicked, enter tree drill-down
-  if (TREE_CONFIGS[d.id] && !treeViewActive) {
+  if (TREE_CONFIGS[d.id] && !state.treeViewActive) {
     enterTreeView(d.id);
     return;
   }
 
-  if (treeViewActive) return;
+  if (state.treeViewActive) return;
 
-  if (selectedNode === d) {
-    selectedNode = null;
+  if (state.selectedNode === d) {
+    state.selectedNode = null;
     clearHighlight();
     return;
   }
 
-  selectedNode = d;
+  state.selectedNode = d;
   applyHighlight(d);
 });
 
 d3.select("body").on("click", function() {
-  if (treeViewActive && !treeTransitioning) {
+  if (state.treeViewActive && !state.treeTransitioning) {
     exitTreeView();
     return;
   }
-  if (selectedNode) {
-    selectedNode = null;
+  if (state.selectedNode) {
+    state.selectedNode = null;
     clearHighlight();
     document.querySelectorAll(".legend-item").forEach(el => {
       el.classList.remove("is-active");
@@ -410,13 +414,13 @@ function buildLegend() {
     });
 
     item.addEventListener("click", () => {
-      if (treeViewActive) return;
+      if (state.treeViewActive) return;
       const alreadyActive = item.classList.contains("is-active");
       document.querySelectorAll(".legend-item").forEach(el => {
         el.classList.remove("is-active");
         el.setAttribute("aria-pressed", "false");
       });
-      selectedNode = null;
+      state.selectedNode = null;
 
       if (alreadyActive) {
         clearHighlight();
@@ -464,8 +468,6 @@ window.addEventListener("resize", () => {
 
 // DATA: *_TREE constants, makeTreeColorFn, TREE_CONFIGS — see data/treemaps.js
 
-let treeGroup = null;
-let activeTreeId = null;
 
 // Add back button to container
 const backBtn = document.createElement("button");
@@ -489,8 +491,8 @@ drillableNodes.select("rect")
   .on("keydown", function(event, d) {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
-      if (treeTransitioning) return;
-      if (TREE_CONFIGS[d.id] && !treeViewActive) {
+      if (state.treeTransitioning) return;
+      if (TREE_CONFIGS[d.id] && !state.treeViewActive) {
         enterTreeView(d.id);
       }
     }
@@ -505,7 +507,7 @@ drillableNodes.append("text")
 
 // Escape key exits tree view
 document.addEventListener("keydown", function(event) {
-  if (event.key === "Escape" && treeViewActive && !treeTransitioning) {
+  if (event.key === "Escape" && state.treeViewActive && !state.treeTransitioning) {
     exitTreeView();
   }
 });
@@ -529,11 +531,11 @@ function onAllDone(selection, callback) {
 }
 
 function enterTreeView(nodeId) {
-  if (treeTransitioning) return;
-  activeTreeId = nodeId;
-  treeViewActive = true;
-  treeTransitioning = true;
-  selectedNode = null;
+  if (state.treeTransitioning) return;
+  state.activeTreeId = nodeId;
+  state.treeViewActive = true;
+  state.treeTransitioning = true;
+  state.selectedNode = null;
   clearHighlight();
   hideTooltip();
   document.querySelectorAll(".legend-item").forEach(el => {
@@ -543,10 +545,10 @@ function enterTreeView(nodeId) {
 
   // Interrupt any in-flight transitions
   svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
-  if (treeGroup) {
-    treeGroup.interrupt();
-    treeGroup.remove();
-    treeGroup = null;
+  if (state.treeGroup) {
+    state.treeGroup.interrupt();
+    state.treeGroup.remove();
+    state.treeGroup = null;
   }
 
   // Fade out Sankey elements, then render treemap
@@ -560,7 +562,7 @@ function enterTreeView(nodeId) {
   onAllDone(t, function() {
     sankeyEls.style("display", "none");
     renderTree();
-    treeTransitioning = false;
+    state.treeTransitioning = false;
   });
 
   // Show back button and focus it for keyboard users
@@ -569,9 +571,9 @@ function enterTreeView(nodeId) {
 }
 
 function exitTreeView() {
-  if (!treeViewActive || treeTransitioning) return;
-  treeViewActive = false;
-  treeTransitioning = true;
+  if (!state.treeViewActive || state.treeTransitioning) return;
+  state.treeViewActive = false;
+  state.treeTransitioning = true;
   hideTooltip();
 
   // Hide back button
@@ -581,15 +583,15 @@ function exitTreeView() {
   svg.selectAll(".sankey-links, .sankey-nodes").interrupt();
 
   // Fade out and remove tree
-  if (treeGroup) {
-    treeGroup.interrupt();
-    treeGroup
+  if (state.treeGroup) {
+    state.treeGroup.interrupt();
+    state.treeGroup
       .transition()
       .duration(DUR_TREE_OUT)
       .style("opacity", 0)
       .on("end", function() { d3.select(this).remove(); })
       .on("interrupt", function() { d3.select(this).remove(); });
-    treeGroup = null;
+    state.treeGroup = null;
   }
 
   // Clear any stale highlight state
@@ -611,11 +613,11 @@ function exitTreeView() {
     .style("opacity", 1);
 
   onAllDone(t, function() {
-    treeTransitioning = false;
+    state.treeTransitioning = false;
     // Return focus to the drillable node for keyboard users
-    const focusNode = nodes.filter(n => n.id === activeTreeId).select("rect").node();
+    const focusNode = nodes.filter(n => n.id === state.activeTreeId).select("rect").node();
     if (focusNode) focusNode.focus();
-    activeTreeId = null;
+    state.activeTreeId = null;
   });
 }
 
@@ -785,7 +787,7 @@ function attachTreeInteractions(cells, root, cellColor, cfg) {
 }
 
 function renderTree() {
-  const cfg = TREE_CONFIGS[activeTreeId];
+  const cfg = TREE_CONFIGS[state.activeTreeId];
   const tmWidth = dims.width;
   const tmHeight = dims.height - 30;
   const titleOffset = 30;
@@ -793,26 +795,26 @@ function renderTree() {
   const root = buildTreemapLayout(cfg, tmWidth, tmHeight);
   const cellColor = cfg.colorFn;
 
-  // Create group for treemap (assigns global treeGroup for exitTreeView)
-  treeGroup = svg.append("g")
+  // Create group for treemap (assigns state.treeGroup for exitTreeView)
+  state.treeGroup = svg.append("g")
     .attr("class", "tree-view")
     .attr("role", "img")
     .attr("aria-label", cfg.ariaLabel)
     .style("opacity", 0);
 
-  treeGroup.append("text")
+  state.treeGroup.append("text")
     .attr("class", "treemap-title")
     .attr("x", 0)
     .attr("y", -6)
     .text(cfg.title);
 
-  treeGroup.append("text")
+  state.treeGroup.append("text")
     .attr("class", "treemap-subtitle")
     .attr("x", 0)
     .attr("y", 12)
     .text(cfg.subtitle);
 
-  const tmContent = treeGroup.append("g")
+  const tmContent = state.treeGroup.append("g")
     .attr("transform", `translate(0, ${titleOffset})`);
 
   const groups = root.descendants().filter(d => d.depth > 0 && d.depth <= 3 && d.children);
@@ -822,7 +824,7 @@ function renderTree() {
   attachTreeInteractions(cells, root, cellColor, cfg);
 
   // Fade in
-  treeGroup
+  state.treeGroup
     .transition()
     .duration(DUR_FADE_IN)
     .style("opacity", 1);
